@@ -1,13 +1,6 @@
 {
-  "name": "sams",
+  "name": "edtechschoolmanagement-root",
   "version": "1.0.0",
-  "private": true,
-  "workspaces": [
-    "frontend",
-    "backend"
-  ],
-  "scripts": {
-    "start": "npm run start --workspaces",
-    "dev": "npm run dev --workspaces"
-  }
+  "type": "module",
+  "private": true
 }
