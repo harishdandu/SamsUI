@@ -47,16 +47,16 @@ const connectDB = async () => {
 
   // Log a masked version of the URI for debugging
   const maskedUri = uri.replace(/:([^@]+)@/, ':****@');
-  console.log(`Attempting to connect to MongoDB: ${maskedUri}`);
+  console.error(`DEBUG: Attempting to connect to MongoDB: ${maskedUri}`);
 
   try {
     await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 5000, // Fail fast if connection is blocked
+      serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
     });
-    console.log('Successfully connected to MongoDB');
+    console.error('DEBUG: Successfully connected to MongoDB');
   } catch (error) {
-    console.error('MongoDB Connection Error Details:', {
+    console.error('DEBUG: MongoDB Connection Error Details:', {
       message: error.message,
       code: error.code,
       name: error.name
@@ -67,9 +67,11 @@ const connectDB = async () => {
 // Middleware to ensure DB connection
 app.use(async (req, res, next) => {
   try {
+    console.error('DEBUG: Request hitting DB middleware');
     await connectDB();
     next();
   } catch (err) {
+    console.error('DEBUG: Middleware caught error:', err.message);
     res.status(500).json({ message: "Database connection failed", error: err.message });
   }
 });
