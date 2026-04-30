@@ -1,5 +1,10 @@
 {
   "version": 2,
+  "functions": {
+    "api/*.mjs": {
+      "runtime": "vercel-nodejs@20.x"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",
@@ -7,11 +12,11 @@
     },
     {
       "source": "/assets/(.*)",
-      "destination": "/frontend/dist/assets/$1"
+      "destination": "/public/assets/$1"
     },
     {
       "source": "/(.*)",
-      "destination": "/frontend/dist/index.html"
+      "destination": "/public/index.html"
     }
   ]
 }
