@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Bot, Sparkles, Download, Loader2, Save, FileText } from 'lucide-react';
-import axios from 'axios';
+import api from '../utils/api';
 import jsPDF from 'jspdf';
 
 const TestGenerator = () => {
@@ -17,7 +17,7 @@ const TestGenerator = () => {
   const handleGenerate = async () => {
     setLoading(true);
     try {
-      const response = await axios.post('http://localhost:5000/api/ai/generate', formData);
+      const response = await api.post('/ai/generate', formData);
       setQuestions(response.data.questions);
     } catch (err) {
       console.error('Error generating test:', err);
