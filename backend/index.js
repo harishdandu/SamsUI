@@ -35,19 +35,43 @@ app.use('/api/subjects', subjectRoutes);
 
 // Database connection
 const connectDB = async () => {
-  if (mongoose.connection.readyState >= 1) return;
+  if (mongoose.connection.readyState >= 1) {
+    return;
+  }
+
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    console.error('CRITICAL: MONGODB_URI environment variable is not defined!');
+    return;
+  }
+
+  // Log a masked version of the URI for debugging
+  const maskedUri = uri.replace(/:([^@]+)@/, ':****@');
+  console.log(`Attempting to connect to MongoDB: ${maskedUri}`);
+
   try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/sams');
-    console.log('Connected to MongoDB');
+    await mongoose.connect(uri, {
+      serverSelectionTimeoutMS: 5000, // Fail fast if connection is blocked
+      socketTimeoutMS: 45000,
+    });
+    console.log('Successfully connected to MongoDB');
   } catch (error) {
-    console.error('Error connecting to MongoDB:', error.message);
+    console.error('MongoDB Connection Error Details:', {
+      message: error.message,
+      code: error.code,
+      name: error.name
+    });
   }
 };
 
 // Middleware to ensure DB connection
 app.use(async (req, res, next) => {
-  await connectDB();
-  next();
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    res.status(500).json({ message: "Database connection failed", error: err.message });
+  }
 });
 
 // For local development
