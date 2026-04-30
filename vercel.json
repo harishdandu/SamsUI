@@ -2,7 +2,7 @@
   "version": 2,
   "functions": {
     "api/*.mjs": {
-      "runtime": "vercel-nodejs@20.x"
+      "runtime": "nodejs20.x"
     }
   },
   "rewrites": [
