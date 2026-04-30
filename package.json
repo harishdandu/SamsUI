@@ -1,0 +1,13 @@
+{
+  "name": "sams",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "start": "npm run start --workspaces",
+    "dev": "npm run dev --workspaces"
+  }
+}
