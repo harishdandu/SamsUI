@@ -3,7 +3,8 @@ import User from '../models/User.js';
 import sendEmail from '../utils/email.js';
 
 const generatePassword = (length = 8) => {
-  const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  // Removed ambiguous characters like l, 1, I, O, 0 to prevent confusion
+  const charset = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let retVal = "";
   for (let i = 0, n = charset.length; i < length; ++i) {
     retVal += charset.charAt(Math.floor(Math.random() * n));
@@ -23,36 +24,35 @@ export const getAllStaff = async (req, res) => {
 export const createStaff = async (req, res) => {
   const { status, joinDate, ...staffData } = req.body;
   
+  // Clear teaching subjects for non-teacher roles to prevent validation errors
+  if (staffData.role !== 'Teacher') {
+    staffData.teachingSubjects = [];
+  }
+
   if (!staffData.employeeId) {
     staffData.employeeId = `EMP-${Date.now()}`;
   }
 
   const newStaff = new Staff(staffData);
   
-  try {
-    const savedStaff = await newStaff.save();
-    
-    // Generate random 8-character password
-    const generatedPassword = generatePassword(8);
-    
-    // Create corresponding User account
-    const userRole = staffData.role === 'Admin' ? 'School Admin' : staffData.role;
-    
-    await User.create({
-      username: staffData.email, // Use full email as username for login
-      email: staffData.email,
-      password: generatedPassword,
-      role: userRole,
-      staffId: savedStaff._id
-    });
+    try {
+      const savedStaff = await newStaff.save();
+      
+      // Generate random 8-character password
+      const generatedPassword = generatePassword(8);
+      
+      // Create corresponding User account
+      const userRole = staffData.role === 'Admin' ? 'School Admin' : staffData.role;
+      
+      await User.create({
+        username: staffData.email, // Use full email as username for login
+        email: staffData.email,
+        password: generatedPassword,
+        role: userRole,
+        staffId: savedStaff._id
+      });
 
-    console.log(`-----------------------------------------`);
-    console.log(`STAFF ACCOUNT CREATED`);
-    console.log(`Email: ${staffData.email}`);
-    console.log(`Password: ${generatedPassword}`);
-    console.log(`-----------------------------------------`);
-
-    // Send Welcome Email
+      // Send Welcome Email
     const portalUrl = 'https://sams-portal-0xoy.onrender.com';
     const message = `Welcome to SAMS Elite!\n\nYour account has been created. You can log in using the following credentials:\n\nPortal: ${portalUrl}\nUsername: ${staffData.email}\nPassword: ${generatedPassword}\n\nPlease change your password after your first login.`;
     
@@ -96,6 +96,12 @@ export const createStaff = async (req, res) => {
 export const updateStaff = async (req, res) => {
   const { id } = req.params;
   const staffData = req.body;
+
+  // Clear teaching subjects for non-teacher roles
+  if (staffData.role && staffData.role !== 'Teacher') {
+    staffData.teachingSubjects = [];
+  }
+
   try {
     const updatedStaff = await Staff.findByIdAndUpdate(id, staffData, { new: true });
     res.status(200).json(updatedStaff);

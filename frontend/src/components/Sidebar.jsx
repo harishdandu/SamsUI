@@ -41,16 +41,43 @@ const Sidebar = () => {
         <span>SAMS Elite</span>
       </div>
       <nav className="sidebar-nav">
-        {menuItems.map((item) => (
-          <NavLink 
-            key={item.path} 
-            to={item.path} 
-            className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-          >
-            {item.icon}
-            <span>{item.name}</span>
-          </NavLink>
-        ))}
+        {menuItems
+          .filter(item => {
+            const role = user?.role?.toLowerCase();
+            
+            // Staff Attendance restriction: ONLY Admin & Super Admin
+            if (item.name === 'Staff Attendance') {
+              if (!['admin', 'super admin'].includes(role)) return false;
+            }
+
+            // Subjects restriction: Hide for Teacher, HR, Accountant, and Admin (as per previous request)
+            if (item.name === 'Subjects') {
+              const hideSubjectsFor = ['admin', 'teacher', 'hr', 'accountant'];
+              if (hideSubjectsFor.includes(role)) return false;
+            }
+            
+            // Student Attendance restriction: Only Admin, Teacher, Super Admin
+            if (item.name === 'Attendance') {
+              if (!['admin', 'teacher', 'super admin'].includes(role)) return false;
+            }
+
+            // Fees restriction: Hide for Teacher
+            if (item.name === 'Fees') {
+              if (role === 'teacher') return false;
+            }
+
+            return true;
+          })
+          .map((item) => (
+            <NavLink 
+              key={item.path} 
+              to={item.path} 
+              className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+            >
+              {item.icon}
+              <span>{item.name}</span>
+            </NavLink>
+          ))}
       </nav>
 
       <div className="sidebar-footer">

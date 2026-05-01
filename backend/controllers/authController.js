@@ -23,7 +23,10 @@ export const register = async (req, res) => {
 };
 
 export const login = async (req, res) => {
-  const { username, password } = req.body;
+  let { username, password } = req.body;
+  
+  if (username) username = username.trim();
+  if (password) password = password.trim();
 
   if (!username || !password) {
     return res.status(400).json({ message: 'Please provide username and password' });
@@ -47,7 +50,15 @@ export const login = async (req, res) => {
     res.status(200).json({
       status: 'success',
       token,
-      data: { user }
+      data: { 
+        user: {
+          _id: user._id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          staffId: user.staffId
+        }
+      }
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
