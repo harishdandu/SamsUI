@@ -2,8 +2,14 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// Import routes relative to this file
+// Helper for ESM __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Import routes
 import studentRoutes from './routes/studentRoutes.js';
 import attendanceRoutes from './routes/attendanceRoutes.js';
 import feeRoutes from './routes/feeRoutes.js';
@@ -22,7 +28,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Routes
+// API Routes
 app.use('/api/students', studentRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/fees', feeRoutes);
@@ -34,35 +40,30 @@ app.use('/api/accounting', accountingRoutes);
 app.use('/api/staff-attendance', staffAttendanceRoutes);
 app.use('/api/subjects', subjectRoutes);
 
-// Database connection logic for Serverless
+// --- FRONTEND SERVING ---
+// 1. Serve static files from the 'public' folder
+app.use(express.static(path.join(__dirname, 'public')));
+
+// 2. Catch-all route: for any request that isn't an API call, serve index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Database connection logic
 const connectDB = async () => {
   if (mongoose.connection.readyState >= 1) return;
-
   const uri = process.env.MONGODB_URI;
-  if (!uri) {
-    console.error('CRITICAL: MONGODB_URI is not defined!');
-    return;
-  }
-
+  if (!uri) return;
   try {
-    await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-    });
-    console.log('Successfully connected to MongoDB');
+    await mongoose.connect(uri);
   } catch (error) {
-    console.error('MongoDB Connection Error:', error.message);
+    console.error('DB Connection Error:', error.message);
   }
 };
 
-// Middleware to ensure DB connection
 app.use(async (req, res, next) => {
-  try {
-    await connectDB();
-    next();
-  } catch (err) {
-    res.status(500).json({ message: "Database connection failed", error: err.message });
-  }
+  await connectDB();
+  next();
 });
 
 export default app;
