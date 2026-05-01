@@ -1,5 +1,6 @@
 import Staff from '../models/Staff.js';
 import User from '../models/User.js';
+import sendEmail from '../utils/email.js';
 
 const generatePassword = (length = 8) => {
   const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -51,13 +52,41 @@ export const createStaff = async (req, res) => {
     console.log(`Password: ${generatedPassword}`);
     console.log(`-----------------------------------------`);
 
-    // In a real app, you would use a mailer here:
-    // await sendWelcomeEmail(staffData.email, generatedPassword);
+    // Send Welcome Email
+    const portalUrl = 'https://sams-portal-0xoy.onrender.com';
+    const message = `Welcome to SAMS Elite!\n\nYour account has been created. You can log in using the following credentials:\n\nPortal: ${portalUrl}\nUsername: ${staffData.email}\nPassword: ${generatedPassword}\n\nPlease change your password after your first login.`;
+    
+    const html = `
+      <div style="font-family: sans-serif; padding: 20px; color: #333;">
+        <h2 style="color: #4f46e5;">Welcome to SAMS Elite!</h2>
+        <p>Hello ${staffData.firstName},</p>
+        <p>Your staff account has been successfully created. You can now access the school management portal.</p>
+        <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+          <p style="margin: 5px 0;"><strong>Portal URL:</strong> <a href="${portalUrl}">${portalUrl}</a></p>
+          <p style="margin: 5px 0;"><strong>Username:</strong> ${staffData.email}</p>
+          <p style="margin: 5px 0;"><strong>Password:</strong> <span style="color: #ef4444; font-family: monospace; font-size: 1.1rem;">${generatedPassword}</span></p>
+        </div>
+        <p>Please log in and change your password as soon as possible.</p>
+        <p>Best Regards,<br>SAMS Administration Team</p>
+      </div>
+    `;
+
+    try {
+      await sendEmail({
+        email: staffData.email,
+        subject: 'Welcome to SAMS Elite - Your Account Credentials',
+        message,
+        html
+      });
+      console.log(`✅ Welcome email sent to ${staffData.email}`);
+    } catch (emailError) {
+      console.error(`❌ Failed to send welcome email: ${emailError.message}`);
+      // We don't fail the whole request if email fails, but we log it
+    }
 
     res.status(201).json({
-      message: 'Staff created and account activated',
-      staff: savedStaff,
-      tempPassword: generatedPassword // For testing/demo purposes
+      message: 'Staff created and welcome email sent',
+      staff: savedStaff
     });
   } catch (error) {
     res.status(409).json({ message: error.message });
