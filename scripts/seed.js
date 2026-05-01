@@ -1,7 +1,10 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 
-const MONGODB_URI = "mongodb+srv://admin:Admin2026@cluster0.h0jc60k.mongodb.net/sams?retryWrites=true&w=majority&appName=Cluster0";
+import dotenv from 'dotenv';
+dotenv.config();
+
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/sams";
 
 const seedAdmin = async () => {
   try {

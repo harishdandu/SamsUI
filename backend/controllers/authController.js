@@ -30,7 +30,12 @@ export const login = async (req, res) => {
   }
 
   try {
-    const user = await User.findOne({ username }).select('+password');
+    const user = await User.findOne({
+      $or: [
+        { username: username },
+        { email: username }
+      ]
+    }).select('+password');
     
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({ message: 'Incorrect username or password' });

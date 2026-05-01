@@ -9,7 +9,8 @@ import {
   GraduationCap,
   Sparkles,
   BarChart3,
-  Book
+  Book,
+  LogOut
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -61,7 +62,7 @@ const Sidebar = () => {
           </div>
         </div>
         <button className="logout-btn nav-item" onClick={handleLogout}>
-          <Sparkles size={20} style={{ opacity: 0 }} /> {/* Spacer */}
+          <LogOut size={20} />
           <span>Log Out</span>
         </button>
       </div>
@@ -79,6 +80,7 @@ const Sidebar = () => {
           display: flex;
           flex-direction: column;
           z-index: 100;
+          overflow-y: auto;
         }
 
         .sidebar-logo {

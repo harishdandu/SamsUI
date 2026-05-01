@@ -1,4 +1,14 @@
 import Staff from '../models/Staff.js';
+import User from '../models/User.js';
+
+const generatePassword = (length = 8) => {
+  const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let retVal = "";
+  for (let i = 0, n = charset.length; i < length; ++i) {
+    retVal += charset.charAt(Math.floor(Math.random() * n));
+  }
+  return retVal;
+};
 
 export const getAllStaff = async (req, res) => {
   try {
@@ -10,14 +20,45 @@ export const getAllStaff = async (req, res) => {
 };
 
 export const createStaff = async (req, res) => {
-  const staffData = req.body;
+  const { status, joinDate, ...staffData } = req.body;
+  
   if (!staffData.employeeId) {
     staffData.employeeId = `EMP-${Date.now()}`;
   }
+
   const newStaff = new Staff(staffData);
+  
   try {
-    await newStaff.save();
-    res.status(201).json(newStaff);
+    const savedStaff = await newStaff.save();
+    
+    // Generate random 8-character password
+    const generatedPassword = generatePassword(8);
+    
+    // Create corresponding User account
+    const userRole = staffData.role === 'Admin' ? 'School Admin' : staffData.role;
+    
+    await User.create({
+      username: staffData.email, // Use full email as username for login
+      email: staffData.email,
+      password: generatedPassword,
+      role: userRole,
+      staffId: savedStaff._id
+    });
+
+    console.log(`-----------------------------------------`);
+    console.log(`STAFF ACCOUNT CREATED`);
+    console.log(`Email: ${staffData.email}`);
+    console.log(`Password: ${generatedPassword}`);
+    console.log(`-----------------------------------------`);
+
+    // In a real app, you would use a mailer here:
+    // await sendWelcomeEmail(staffData.email, generatedPassword);
+
+    res.status(201).json({
+      message: 'Staff created and account activated',
+      staff: savedStaff,
+      tempPassword: generatedPassword // For testing/demo purposes
+    });
   } catch (error) {
     res.status(409).json({ message: error.message });
   }
