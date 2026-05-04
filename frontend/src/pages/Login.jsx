@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { GraduationCap, Lock, User, Loader2 } from 'lucide-react';
 
@@ -52,7 +52,12 @@ const Login = () => {
             </div>
           </div>
           <div className="form-group">
-            <label className="form-label">Password</label>
+            <div className="label-row">
+              <label className="form-label">Password</label>
+              <Link to="/forgot-password" style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: '600' }}>
+                Forgot Password?
+              </Link>
+            </div>
             <div className="input-group">
               <Lock size={18} />
               <input 
@@ -81,6 +86,8 @@ const Login = () => {
         .login-header { margin-bottom: 2rem; }
         .login-header h1 { font-size: 1.75rem; font-weight: 700; margin: 1rem 0 0.5rem; }
         .login-header p { color: var(--text-secondary); }
+        .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+        .label-row .form-label { margin-bottom: 0; }
         .input-group { position: relative; display: flex; align-items: center; }
         .input-group svg { position: absolute; left: 1rem; color: var(--text-secondary); }
         .input-group .form-input { padding-left: 2.75rem; }
