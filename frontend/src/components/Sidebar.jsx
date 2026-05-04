@@ -9,7 +9,9 @@ import {
   GraduationCap,
   Sparkles,
   BarChart3,
-  Book
+  Book,
+  Lock,
+  LogOut
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -60,8 +62,12 @@ const Sidebar = () => {
             <p className="user-role">{user?.role}</p>
           </div>
         </div>
+        <NavLink to="/change-password" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+          <Lock size={20} />
+          <span>Change Password</span>
+        </NavLink>
         <button className="logout-btn nav-item" onClick={handleLogout}>
-          <Sparkles size={20} style={{ opacity: 0 }} /> {/* Spacer */}
+          <LogOut size={20} />
           <span>Log Out</span>
         </button>
       </div>
@@ -96,6 +102,9 @@ const Sidebar = () => {
           display: flex;
           flex-direction: column;
           gap: 0.5rem;
+          flex: 1;
+          overflow-y: auto;
+          margin-bottom: 1rem;
         }
 
         .nav-item {
