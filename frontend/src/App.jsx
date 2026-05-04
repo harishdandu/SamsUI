@@ -13,6 +13,7 @@ import TestGenerator from './pages/TestGenerator';
 import Accounting from './pages/Accounting';
 import Login from './pages/Login';
 import ChangePassword from './pages/ChangePassword';
+import ForgotPassword from './pages/ForgotPassword';
 
 const ProtectedRoute = ({ children }) => {
   const { token, loading } = useAuth();
@@ -34,6 +35,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/students" element={<ProtectedRoute><Students /></ProtectedRoute>} />
           <Route path="/staff" element={<ProtectedRoute><Staff /></ProtectedRoute>} />
