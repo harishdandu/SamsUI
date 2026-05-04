@@ -20,7 +20,8 @@ const ChangePassword = () => {
     setError('');
     
     try {
-      const response = await fetch('http://localhost:5000/api/auth/request-otp', {
+      const baseUrl = window.location.origin.includes('localhost') ? 'http://localhost:5000/api' : '/api';
+      const response = await fetch(`${baseUrl}/auth/request-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -56,7 +57,8 @@ const ChangePassword = () => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/change-password-otp', {
+      const baseUrl = window.location.origin.includes('localhost') ? 'http://localhost:5000/api' : '/api';
+      const response = await fetch(`${baseUrl}/auth/change-password-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

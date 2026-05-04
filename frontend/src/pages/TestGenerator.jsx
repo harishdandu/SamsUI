@@ -17,7 +17,8 @@ const TestGenerator = () => {
   const handleGenerate = async () => {
     setLoading(true);
     try {
-      const response = await axios.post('http://localhost:5000/api/ai/generate', formData);
+      const baseUrl = window.location.origin.includes('localhost') ? 'http://localhost:5000/api' : '/api';
+      const response = await axios.post(`${baseUrl}/ai/generate`, formData);
       setQuestions(response.data.questions);
     } catch (err) {
       console.error('Error generating test:', err);

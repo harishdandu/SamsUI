@@ -23,7 +23,8 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', { username, password });
+      const baseUrl = window.location.origin.includes('localhost') ? 'http://localhost:5000/api' : '/api';
+      const response = await axios.post(`${baseUrl}/auth/login`, { username, password });
       const { token: newToken, data } = response.data;
       
       setToken(newToken);

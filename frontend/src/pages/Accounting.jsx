@@ -15,9 +15,10 @@ const Accounting = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
+      const baseUrl = window.location.origin.includes('localhost') ? 'http://localhost:5000/api' : '/api';
       const [transRes, summaryRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/accounting/transactions'),
-        axios.get('http://localhost:5000/api/accounting/profit-loss')
+        axios.get(`${baseUrl}/accounting/transactions`),
+        axios.get(`${baseUrl}/accounting/profit-loss`)
       ]);
       setTransactions(transRes.data);
       setSummary(summaryRes.data);

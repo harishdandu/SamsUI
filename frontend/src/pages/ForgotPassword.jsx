@@ -19,7 +19,8 @@ const ForgotPassword = () => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/forgot-password', {
+      const baseUrl = window.location.origin.includes('localhost') ? 'http://localhost:5000/api' : '/api';
+      const response = await fetch(`${baseUrl}/auth/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
@@ -53,7 +54,8 @@ const ForgotPassword = () => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/reset-password', {
+      const baseUrl = window.location.origin.includes('localhost') ? 'http://localhost:5000/api' : '/api';
+      const response = await fetch(`${baseUrl}/auth/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, otp, newPassword })
