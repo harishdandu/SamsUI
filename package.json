@@ -7,7 +7,7 @@
     "backend"
   ],
   "scripts": {
-    "build": "cd frontend && npm install && npm run build && cd .. && rm -rf backend/public && cp -r frontend/dist backend/public && mkdir -p public && touch public/.gitkeep",
+    "build": "cd backend && npm install && cd .. && cd frontend && npm install && npm run build && cd .. && rm -rf backend/public && cp -r frontend/dist backend/public && mkdir -p public && touch public/.gitkeep",
     "start": "node backend/index.js",
     "dev": "concurrently \"cd frontend && npm run dev\" \"node backend/index.js\""
   },
