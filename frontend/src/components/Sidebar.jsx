@@ -9,9 +9,7 @@ import {
   GraduationCap,
   Sparkles,
   BarChart3,
-  Book,
-  LogOut,
-  ShieldCheck
+  Book
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -42,43 +40,16 @@ const Sidebar = () => {
         <span>SAMS Elite</span>
       </div>
       <nav className="sidebar-nav">
-        {menuItems
-          .filter(item => {
-            const role = user?.role?.toLowerCase();
-            
-            // Staff Attendance restriction: ONLY Admin & Super Admin
-            if (item.name === 'Staff Attendance') {
-              if (!['admin', 'super admin'].includes(role)) return false;
-            }
-
-            // Subjects restriction: Hide for Teacher, HR, Accountant, and Admin (as per previous request)
-            if (item.name === 'Subjects') {
-              const hideSubjectsFor = ['admin', 'teacher', 'hr', 'accountant'];
-              if (hideSubjectsFor.includes(role)) return false;
-            }
-            
-            // Student Attendance restriction: Only Admin, Teacher, Super Admin
-            if (item.name === 'Attendance') {
-              if (!['admin', 'teacher', 'super admin'].includes(role)) return false;
-            }
-
-            // Fees restriction: Hide for Teacher
-            if (item.name === 'Fees') {
-              if (role === 'teacher') return false;
-            }
-
-            return true;
-          })
-          .map((item) => (
-            <NavLink 
-              key={item.path} 
-              to={item.path} 
-              className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-            >
-              {item.icon}
-              <span>{item.name}</span>
-            </NavLink>
-          ))}
+        {menuItems.map((item) => (
+          <NavLink 
+            key={item.path} 
+            to={item.path} 
+            className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+          >
+            {item.icon}
+            <span>{item.name}</span>
+          </NavLink>
+        ))}
       </nav>
 
       <div className="sidebar-footer">
@@ -89,12 +60,8 @@ const Sidebar = () => {
             <p className="user-role">{user?.role}</p>
           </div>
         </div>
-        <NavLink to="/change-password" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} style={{ marginBottom: '0.5rem' }}>
-          <ShieldCheck size={20} />
-          <span>Change Password</span>
-        </NavLink>
         <button className="logout-btn nav-item" onClick={handleLogout}>
-          <LogOut size={20} />
+          <Sparkles size={20} style={{ opacity: 0 }} /> {/* Spacer */}
           <span>Log Out</span>
         </button>
       </div>
@@ -112,7 +79,6 @@ const Sidebar = () => {
           display: flex;
           flex-direction: column;
           z-index: 100;
-          overflow-y: auto;
         }
 
         .sidebar-logo {
