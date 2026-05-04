@@ -42,8 +42,8 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// ROBUST CONNECTION LOGIC
-const connectDB = async () => {
+// ROBUST CONNECTION LOGIC with Retry
+const connectDB = async (retryCount = 5) => {
   const uri = process.env.MONGODB_URI;
   
   if (!uri) {
@@ -51,16 +51,21 @@ const connectDB = async () => {
     return;
   }
 
-  console.log("⏳ Attempting to connect to MongoDB...");
+  console.log(`⏳ Attempting to connect to MongoDB... (Attempts remaining: ${retryCount})`);
   
   try {
-    // Force a 10s timeout for the connection itself
     await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 10000, 
+      serverSelectionTimeoutMS: 5000, 
     });
     console.log("✅ SUCCESS: Connected to MongoDB");
   } catch (error) {
     console.error("❌ MONGODB CONNECTION ERROR:", error.message);
+    if (retryCount > 0) {
+      console.log("🔄 Retrying in 5 seconds...");
+      setTimeout(() => connectDB(retryCount - 1), 5000);
+    } else {
+      console.error("💀 FATAL: Could not connect to MongoDB after multiple attempts.");
+    }
   }
 };
 

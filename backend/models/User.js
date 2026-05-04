@@ -28,7 +28,9 @@ const userSchema = new mongoose.Schema({
   studentId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Student'
-  }
+  },
+  passwordOTP: String,
+  passwordOTPExpires: Date
 }, { timestamps: true });
 
 // Hash password before saving

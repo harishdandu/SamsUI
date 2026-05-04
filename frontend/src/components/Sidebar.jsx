@@ -10,7 +10,8 @@ import {
   Sparkles,
   BarChart3,
   Book,
-  LogOut
+  LogOut,
+  ShieldCheck
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -88,6 +89,10 @@ const Sidebar = () => {
             <p className="user-role">{user?.role}</p>
           </div>
         </div>
+        <NavLink to="/change-password" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} style={{ marginBottom: '0.5rem' }}>
+          <ShieldCheck size={20} />
+          <span>Change Password</span>
+        </NavLink>
         <button className="logout-btn nav-item" onClick={handleLogout}>
           <LogOut size={20} />
           <span>Log Out</span>
