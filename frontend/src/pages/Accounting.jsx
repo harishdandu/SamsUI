@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CreditCard, TrendingUp, TrendingDown, Plus, Loader2, ArrowUpRight, ArrowDownRight } from 'lucide-react';
-import api from '../utils/api';
+import axios from 'axios';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 const Accounting = () => {
@@ -16,8 +16,8 @@ const Accounting = () => {
     setLoading(true);
     try {
       const [transRes, summaryRes] = await Promise.all([
-        api.get('/accounting/transactions'),
-        api.get('/accounting/profit-loss')
+        axios.get('http://localhost:5000/api/accounting/transactions'),
+        axios.get('http://localhost:5000/api/accounting/profit-loss')
       ]);
       setTransactions(transRes.data);
       setSummary(summaryRes.data);

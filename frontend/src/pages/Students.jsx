@@ -2,10 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Search, UserPlus, MoreVertical, Filter, Loader2, Edit, Trash2 } from 'lucide-react';
 import { studentApi } from '../utils/api';
 import StudentModal from '../components/StudentModal';
-import { useAuth } from '../context/AuthContext';
 
 const Students = () => {
-  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -80,12 +78,10 @@ const Students = () => {
           <h1>Students</h1>
           <p>Manage your student lifecycle and records.</p>
         </div>
-        {['admin', 'super admin'].includes(user?.role?.toLowerCase()) && (
-          <button className="btn btn-primary" onClick={openAddModal}>
-            <UserPlus size={18} />
-            Add Student
-          </button>
-        )}
+        <button className="btn btn-primary" onClick={openAddModal}>
+          <UserPlus size={18} />
+          Add Student
+        </button>
       </header>
 
       <div className="table-actions card">
@@ -123,7 +119,7 @@ const Students = () => {
                 <th>Name</th>
                 <th>Class</th>
                 <th>Status</th>
-                {['Admin', 'Super Admin'].includes(user?.role) && <th>Action</th>}
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -138,26 +134,24 @@ const Students = () => {
                         {student.status}
                       </span>
                     </td>
-                    {['admin', 'super admin'].includes(user?.role?.toLowerCase()) && (
-                      <td className="action-cell">
-                        <button 
-                          className="btn-icon" 
-                          onClick={() => setActionMenuId(actionMenuId === student._id ? null : student._id)}
-                        >
-                          <MoreVertical size={18} color="var(--text-secondary)" />
-                        </button>
-                        {actionMenuId === student._id && (
-                          <div className="action-menu card">
-                            <button onClick={() => openEditModal(student)}>
-                              <Edit size={16} /> Edit
-                            </button>
-                            <button className="delete" onClick={() => handleDeleteStudent(student._id)}>
-                              <Trash2 size={16} /> Delete
-                            </button>
-                          </div>
-                        )}
-                      </td>
-                    )}
+                    <td className="action-cell">
+                      <button 
+                        className="btn-icon" 
+                        onClick={() => setActionMenuId(actionMenuId === student._id ? null : student._id)}
+                      >
+                        <MoreVertical size={18} color="var(--text-secondary)" />
+                      </button>
+                      {actionMenuId === student._id && (
+                        <div className="action-menu card">
+                          <button onClick={() => openEditModal(student)}>
+                            <Edit size={16} /> Edit
+                          </button>
+                          <button className="delete" onClick={() => handleDeleteStudent(student._id)}>
+                            <Trash2 size={16} /> Delete
+                          </button>
+                        </div>
+                      )}
+                    </td>
                   </tr>
                 ))
               ) : (

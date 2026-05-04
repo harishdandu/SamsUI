@@ -197,6 +197,25 @@ const StaffModal = ({ isOpen, onClose, onSave, staffMember = null }) => {
             </div>
           </div>
 
+          <div className="form-grid">
+            <div className="form-group">
+              <label className="form-label">Status</label>
+              <select name="status" className="form-input" value={formData.status} onChange={handleChange}>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+                <option value="On Leave">On Leave</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Joining Date</label>
+              <input 
+                type="date" name="joiningDate" className="form-input" 
+                value={formData.joiningDate} onChange={handleChange} required 
+                disabled={!!staffMember}
+              />
+            </div>
+          </div>
+
           <div className="modal-footer">
             <button type="button" className="btn" onClick={onClose}>Cancel</button>
             <button type="submit" className="btn btn-primary" disabled={loading}>

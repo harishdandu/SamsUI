@@ -85,15 +85,11 @@ const Fees = () => {
     doc.save(`Receipt_${fee.receiptNumber}.pdf`);
   };
 
-  const filteredFees = fees.filter(fee => {
-    const firstName = fee.studentId?.firstName || '';
-    const lastName = fee.studentId?.lastName || '';
-    const receipt = fee.receiptNumber || '';
-    
-    return firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           receipt.toLowerCase().includes(searchTerm.toLowerCase());
-  });
+  const filteredFees = fees.filter(fee => 
+    fee.studentId.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    fee.studentId.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    fee.receiptNumber.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const totalCollection = fees.reduce((sum, f) => sum + (f.status === 'Paid' ? f.amount : 0), 0);
   const pendingCount = fees.filter(f => f.status === 'Pending').length;
@@ -162,12 +158,7 @@ const Fees = () => {
                 filteredFees.map((fee) => (
                   <tr key={fee._id}>
                     <td><strong>#{fee.receiptNumber}</strong></td>
-                    <td>
-                      {fee.studentId 
-                        ? `${fee.studentId.firstName} ${fee.studentId.lastName}` 
-                        : <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>[Deleted Student]</span>
-                      }
-                    </td>
+                    <td>{fee.studentId.firstName} {fee.studentId.lastName}</td>
                     <td>${fee.amount.toFixed(2)}</td>
                     <td>{new Date(fee.createdAt).toLocaleDateString()}</td>
                     <td>{fee.paymentMethod}</td>

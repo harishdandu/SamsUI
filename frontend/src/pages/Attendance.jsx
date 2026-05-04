@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Save, Loader2, CheckCircle2 } from 'lucide-react';
-import { studentApi, attendanceApi, staffApi } from '../utils/api';
-import { useAuth } from '../context/AuthContext';
+import { studentApi, attendanceApi } from '../utils/api';
 
 const Attendance = () => {
-  const { user } = useAuth();
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [className, setClassName] = useState('1');
   const [section, setSection] = useState('A');
@@ -14,36 +12,6 @@ const Attendance = () => {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState(null);
   const [attendanceExists, setAttendanceExists] = useState(false);
-  const [allowedClasses, setAllowedClasses] = useState([]);
-
-  useEffect(() => {
-    if (user?.role?.toLowerCase() === 'teacher' && user.staffId) {
-      fetchTeacherClasses();
-    }
-  }, [user]);
-
-  const fetchTeacherClasses = async () => {
-    try {
-      const response = await staffApi.getById(user.staffId);
-      const staff = response.data;
-      
-      // Extract unique classes from teachingSubjects
-      const classes = new Set();
-      staff.teachingSubjects.forEach(subject => {
-        subject.classes.forEach(c => classes.add(c));
-      });
-      
-      const classList = Array.from(classes).sort((a, b) => parseInt(a) - parseInt(b));
-      setAllowedClasses(classList);
-      
-      // Default to first allowed class if current one isn't in the list
-      if (classList.length > 0 && !classList.includes(className)) {
-        setClassName(classList[0]);
-      }
-    } catch (err) {
-      console.error('Error fetching teacher classes:', err);
-    }
-  };
 
   useEffect(() => {
     fetchStudents();
@@ -148,12 +116,7 @@ const Attendance = () => {
         <div className="form-group">
           <label className="form-label">Class</label>
           <select className="form-input" value={className} onChange={(e) => setClassName(e.target.value)}>
-            {user?.role?.toLowerCase() === 'teacher' 
-              ? (allowedClasses.length > 0 
-                  ? allowedClasses.map(c => <option key={c} value={c}>Class {c}</option>)
-                  : <option value="">No classes assigned</option>)
-              : Array.from({ length: 10 }, (_, i) => (i + 1).toString()).map(c => <option key={c} value={c}>Class {c}</option>)
-            }
+            {Array.from({ length: 10 }, (_, i) => (i + 1).toString()).map(c => <option key={c} value={c}>Class {c}</option>)}
           </select>
         </div>
         <div className="form-group">

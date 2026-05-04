@@ -2,10 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Search, UserPlus, MoreVertical, Filter, Loader2, Edit, Trash2 } from 'lucide-react';
 import { staffApi } from '../utils/api';
 import StaffModal from '../components/StaffModal';
-import { useAuth } from '../context/AuthContext';
 
 const Staff = () => {
-  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -82,12 +80,10 @@ const Staff = () => {
           <h1>Staff Management</h1>
           <p>Manage teachers, admins, and other school staff.</p>
         </div>
-        {['admin', 'super admin'].includes(user?.role?.toLowerCase()) && (
-          <button className="btn btn-primary" onClick={handleAddStaff}>
-            <UserPlus size={18} />
-            Add Staff
-          </button>
-        )}
+        <button className="btn btn-primary" onClick={handleAddStaff}>
+          <UserPlus size={18} />
+          Add Staff
+        </button>
       </header>
 
       <div className="table-actions card">
@@ -126,7 +122,7 @@ const Staff = () => {
                 <th>Role</th>
                 <th>Email</th>
                 <th>Status</th>
-                {['admin', 'super admin'].includes(user?.role?.toLowerCase()) && <th>Action</th>}
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -142,24 +138,22 @@ const Staff = () => {
                         {member.status}
                       </span>
                     </td>
-                    {['admin', 'super admin'].includes(user?.role?.toLowerCase()) && (
-                      <td className="action-cell">
-                        <button 
-                          className="btn-icon" 
-                          onClick={() => setActionMenuId(actionMenuId === member._id ? null : member._id)}
-                        >
-                          <MoreVertical size={18} color="var(--text-secondary)" />
-                        </button>
-                        {actionMenuId === member._id && (
-                          <div className="action-menu card">
-                            <button onClick={() => handleEditStaff(member)}><Edit size={16} /> Edit</button>
-                            <button className="delete" onClick={() => handleDeleteStaff(member._id)}>
-                              <Trash2 size={16} /> Delete
-                            </button>
-                          </div>
-                        )}
-                      </td>
-                    )}
+                    <td className="action-cell">
+                      <button 
+                        className="btn-icon" 
+                        onClick={() => setActionMenuId(actionMenuId === member._id ? null : member._id)}
+                      >
+                        <MoreVertical size={18} color="var(--text-secondary)" />
+                      </button>
+                      {actionMenuId === member._id && (
+                        <div className="action-menu card">
+                          <button onClick={() => handleEditStaff(member)}><Edit size={16} /> Edit</button>
+                          <button className="delete" onClick={() => handleDeleteStaff(member._id)}>
+                            <Trash2 size={16} /> Delete
+                          </button>
+                        </div>
+                      )}
+                    </td>
                   </tr>
                 ))
               ) : (
