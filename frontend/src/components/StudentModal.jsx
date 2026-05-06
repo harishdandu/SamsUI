@@ -7,7 +7,12 @@ const StudentModal = ({ isOpen, onClose, onSave, student = null }) => {
     lastName: '',
     class: '8',
     section: 'A',
-    fees: 0
+    fees: 0,
+    firstInstallmentAmount: 0,
+    feeFrequency: 'Quarterly',
+    tuitionStartDate: new Date().toISOString().split('T')[0],
+    tuitionEndDate: '',
+    paymentMethod: 'CASH'
   };
 
   const [formData, setFormData] = useState(initialState);
@@ -20,7 +25,11 @@ const StudentModal = ({ isOpen, onClose, onSave, student = null }) => {
         lastName: student.lastName || '',
         class: student.class || '8',
         section: student.section || 'A',
-        fees: student.fees?.amount || 0
+        fees: student.fees?.amount || 0,
+        firstInstallmentAmount: student.fees?.firstInstallmentAmount || 0,
+        feeFrequency: student.fees?.feeFrequency || 'Quarterly',
+        tuitionStartDate: student.fees?.tuitionStartDate ? new Date(student.fees.tuitionStartDate).toISOString().split('T')[0] : '',
+        tuitionEndDate: student.fees?.tuitionEndDate ? new Date(student.fees.tuitionEndDate).toISOString().split('T')[0] : ''
       });
     } else {
       setFormData(initialState);
@@ -32,14 +41,83 @@ const StudentModal = ({ isOpen, onClose, onSave, student = null }) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const calculateInstallments = () => {
+    const totalFees = Number(formData.fees);
+    const frequency = formData.feeFrequency;
+    const startDate = new Date(formData.tuitionStartDate || new Date());
+    
+    let installmentCount = 0;
+    let intervalMonths = 0;
+
+    switch (frequency) {
+      case 'Monthly':
+        installmentCount = 10;
+        intervalMonths = 1;
+        break;
+      case 'Quarterly':
+        installmentCount = 4;
+        intervalMonths = 3;
+        break;
+      case 'Half Yearly':
+        installmentCount = 2;
+        intervalMonths = 6;
+        break;
+      default:
+        installmentCount = 1;
+        intervalMonths = 0;
+    }
+
+    const installmentAmount = totalFees / installmentCount;
+    const firstPaidAmount = Number(formData.firstInstallmentAmount || 0);
+    const installments = [];
+
+    for (let i = 0; i < installmentCount; i++) {
+      const dueDate = new Date(startDate);
+      dueDate.setMonth(startDate.getMonth() + (i * intervalMonths));
+
+      const isFirst = i === 0;
+      const paid = isFirst ? firstPaidAmount : 0;
+      
+      let status = 'Pending';
+      if (isFirst) {
+        status = firstPaidAmount >= installmentAmount ? 'Paid' : 'Partial';
+      }
+
+      installments.push({
+        installmentNumber: i + 1,
+        installmentAmount: installmentAmount,
+        paidAmount: paid,
+        installmentDueDate: dueDate.toISOString(),
+        paymentStatus: status,
+        paymentDate: isFirst ? new Date().toISOString() : null,
+        paymentMethod: isFirst ? formData.paymentMethod : null
+      });
+    }
+
+    return installments;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
+      const installments = calculateInstallments();
+      
       // Map frontend fees to backend structure
       const studentData = {
         ...formData,
-        fees: { amount: Number(formData.fees) }
+        fees: { 
+          amount: Number(formData.fees),
+          firstInstallmentAmount: Number(formData.firstInstallmentAmount),
+          feeFrequency: formData.feeFrequency,
+          tuitionStartDate: formData.tuitionStartDate,
+          tuitionEndDate: formData.tuitionEndDate,
+          paid: Number(formData.firstInstallmentAmount || 0),
+          status: Number(formData.firstInstallmentAmount || 0) >= Number(formData.fees) 
+            ? 'Paid' 
+            : (Number(formData.firstInstallmentAmount || 0) > 0 ? 'Partial' : 'Pending')
+        },
+        installments: installments // Send calculated installments to backend
       };
       await onSave(studentData);
       onClose();
@@ -117,6 +195,71 @@ const StudentModal = ({ isOpen, onClose, onSave, student = null }) => {
                 required 
               />
             </div>
+            <div className="form-group">
+              <label className="form-label">First Installment ($)</label>
+              <input 
+                type="number" 
+                name="firstInstallmentAmount"
+                className="form-input" 
+                value={formData.firstInstallmentAmount}
+                onChange={handleChange}
+                required 
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Payment Method</label>
+              <select 
+                name="paymentMethod" 
+                className="form-input" 
+                value={formData.paymentMethod}
+                onChange={handleChange}
+              >
+                <option value="UPI">UPI</option>
+                <option value="CASH">CASH</option>
+                <option value="CARD">CARD</option>
+              </select>
+            </div>
+            
+            <div className="form-group full-width">
+              <label className="form-label">Fee Collection Frequency</label>
+              <div className="radio-group">
+                {['Monthly', 'Quarterly', 'Half Yearly'].map(freq => (
+                  <label key={freq} className="radio-label">
+                    <input 
+                      type="radio" 
+                      name="feeFrequency" 
+                      value={freq}
+                      checked={formData.feeFrequency === freq}
+                      onChange={handleChange}
+                    />
+                    <span>{freq}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Tuition Start Date</label>
+              <input 
+                type="date" 
+                name="tuitionStartDate"
+                className="form-input" 
+                value={formData.tuitionStartDate}
+                onChange={handleChange}
+                required 
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Tuition End Date</label>
+              <input 
+                type="date" 
+                name="tuitionEndDate"
+                className="form-input" 
+                value={formData.tuitionEndDate}
+                onChange={handleChange}
+                required 
+              />
+            </div>
           </div>
 
           <div className="modal-footer">
@@ -145,19 +288,50 @@ const StudentModal = ({ isOpen, onClose, onSave, student = null }) => {
         }
         .modal-content {
           width: 100%;
-          max-width: 600px;
+          max-width: 650px;
+          max-height: 90vh;
+          overflow-y: auto;
           padding: 2rem;
           box-shadow: var(--shadow-lg);
+          position: relative;
+          scrollbar-width: thin;
+          scrollbar-color: var(--primary) transparent;
         }
+
+        .modal-content::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        .modal-content::-webkit-scrollbar-thumb {
+          background-color: var(--primary);
+          border-radius: 10px;
+        }
+
         .modal-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
           margin-bottom: 2rem;
+          position: sticky;
+          top: -2rem;
+          background: white;
+          padding: 1rem 0;
+          margin-top: -2rem;
+          z-index: 10;
+          border-bottom: 1px solid var(--border);
         }
+        
+        .modal-header h2 { margin: 0; }
+
         .close-btn {
           color: var(--text-secondary);
           transition: var(--transition);
+          background: none;
+          border: none;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
         .close-btn:hover { color: var(--danger); }
         
@@ -167,6 +341,31 @@ const StudentModal = ({ isOpen, onClose, onSave, student = null }) => {
           gap: 1.5rem;
           margin-bottom: 2rem;
         }
+
+        .full-width {
+          grid-column: span 2;
+        }
+
+        .radio-group {
+          display: flex;
+          gap: 1.5rem;
+          margin-top: 0.5rem;
+        }
+
+        .radio-label {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          cursor: pointer;
+          font-size: 0.875rem;
+          color: var(--text-primary);
+        }
+
+        .radio-label input {
+          width: 1.125rem;
+          height: 1.125rem;
+          accent-color: var(--primary);
+        }
         
         .modal-footer {
           display: flex;
@@ -174,6 +373,12 @@ const StudentModal = ({ isOpen, onClose, onSave, student = null }) => {
           gap: 1rem;
           padding-top: 1.5rem;
           border-top: 1px solid var(--border);
+          position: sticky;
+          bottom: -2rem;
+          background: white;
+          margin-bottom: -2rem;
+          padding-bottom: 2rem;
+          z-index: 10;
         }
       `}</style>
     </div>

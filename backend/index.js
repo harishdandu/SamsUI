@@ -25,6 +25,7 @@ import aiRoutes from './routes/aiRoutes.js';
 import accountingRoutes from './routes/accountingRoutes.js';
 import staffAttendanceRoutes from './routes/staffAttendanceRoutes.js';
 import subjectRoutes from './routes/subjectRoutes.js';
+import ledgerRoutes from './routes/ledgerRoutes.js';
 
 app.use('/api/students', studentRoutes);
 app.use('/api/attendance', attendanceRoutes);
@@ -36,6 +37,7 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/accounting', accountingRoutes);
 app.use('/api/staff-attendance', staffAttendanceRoutes);
 app.use('/api/subjects', subjectRoutes);
+app.use('/api/ledgers', ledgerRoutes);
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.get('*', (req, res) => {

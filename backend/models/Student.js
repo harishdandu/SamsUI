@@ -8,7 +8,11 @@ const studentSchema = new mongoose.Schema({
   fees: {
     amount: { type: Number, default: 0 },
     paid: { type: Number, default: 0 },
-    status: { type: String, enum: ['Pending', 'Partial', 'Paid'], default: 'Pending' }
+    status: { type: String, enum: ['Pending', 'Partial', 'Paid'], default: 'Pending' },
+    firstInstallmentAmount: { type: Number, default: 0 },
+    feeFrequency: { type: String, enum: ['Monthly', 'Quarterly', 'Half Yearly'], default: 'Monthly' },
+    tuitionStartDate: { type: Date },
+    tuitionEndDate: { type: Date }
   },
   firstName: {
     type: String,

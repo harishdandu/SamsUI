@@ -11,7 +11,9 @@ import {
   BarChart3,
   Book,
   Lock,
-  LogOut
+  Clock,
+  LogOut,
+  BookOpen
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -30,10 +32,14 @@ const Sidebar = () => {
     { name: 'Staff Attendance', icon: <CalendarCheck size={20} />, path: '/staff-attendance' },
     { name: 'Attendance', icon: <CalendarCheck size={20} />, path: '/attendance' },
     { name: 'Fees', icon: <CreditCard size={20} />, path: '/fees' },
+    { name: 'Pending Fees', icon: <Clock size={20} />, path: '/pending-fees' },
+    { name: 'Ledgers', icon: <BookOpen size={20} />, path: '/ledger', roles: ['admin'] },
     { name: 'Subjects', icon: <Book size={20} />, path: '/subjects' },
     { name: 'AI Test Gen', icon: <Sparkles size={20} />, path: '/test-gen' },
     { name: 'Accounting', icon: <BarChart3 size={20} />, path: '/accounting' },
   ];
+
+  const filteredItems = menuItems.filter(item => !item.roles || item.roles.includes(user?.role));
 
   return (
     <aside className="sidebar">
@@ -42,7 +48,7 @@ const Sidebar = () => {
         <span>SAMS Elite</span>
       </div>
       <nav className="sidebar-nav">
-        {menuItems.map((item) => (
+        {filteredItems.map((item) => (
           <NavLink 
             key={item.path} 
             to={item.path} 

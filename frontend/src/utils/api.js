@@ -33,7 +33,9 @@ export const attendanceApi = {
 };
 
 export const feeApi = {
-  getAll: () => api.get('/fees'),
+  getAll: (config) => api.get('/fees', config),
+  getPending: (config) => api.get('/fees/pending', config),
+  payInstallment: (id, data) => api.put(`/fees/installments/${id}/pay`, data),
   collect: (data) => api.post('/fees', data),
   updateStatus: (id, data) => api.put(`/fees/${id}`, data),
 };
@@ -59,6 +61,10 @@ export const subjectApi = {
   create: (data) => api.post('/subjects', data),
   update: (id, data) => api.put(`/subjects/${id}`, data),
   delete: (id) => api.delete(`/subjects/${id}`),
+};
+
+export const ledgerApi = {
+  getAll: (config) => api.get('/ledgers', config),
 };
 
 

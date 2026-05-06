@@ -10,6 +10,16 @@ const ledgerSchema = new mongoose.Schema({
     enum: ['Income', 'Expense'],
     required: true
   },
+  studentId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Student'
+  },
+  installmentId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'StudentFeeInstallment'
+  },
+  installmentNumber: Number,
+  installmentDueDate: Date,
   category: {
     type: String,
     required: true
@@ -21,7 +31,7 @@ const ledgerSchema = new mongoose.Schema({
   description: String,
   paymentMethod: {
     type: String,
-    enum: ['Cash', 'Bank Transfer', 'Cheque'],
+    enum: ['Cash', 'Bank Transfer', 'Cheque', 'UPI', 'CASH', 'CARD'],
     default: 'Cash'
   },
   referenceId: String, // e.g., Fee Receipt ID or Salary ID

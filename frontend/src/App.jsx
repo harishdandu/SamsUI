@@ -11,6 +11,8 @@ import Fees from './pages/Fees';
 import Subjects from './pages/Subjects';
 import TestGenerator from './pages/TestGenerator';
 import Accounting from './pages/Accounting';
+import PendingFees from './pages/PendingFees';
+import Ledger from './pages/Ledger';
 import Login from './pages/Login';
 import ChangePassword from './pages/ChangePassword';
 import ForgotPassword from './pages/ForgotPassword';
@@ -45,6 +47,8 @@ function App() {
           <Route path="/subjects" element={<ProtectedRoute><Subjects /></ProtectedRoute>} />
           <Route path="/test-gen" element={<ProtectedRoute><TestGenerator /></ProtectedRoute>} />
           <Route path="/accounting" element={<ProtectedRoute><Accounting /></ProtectedRoute>} />
+          <Route path="/pending-fees" element={<ProtectedRoute><PendingFees /></ProtectedRoute>} />
+          <Route path="/ledger" element={<ProtectedRoute><Ledger /></ProtectedRoute>} />
           <Route path="/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" />} />
