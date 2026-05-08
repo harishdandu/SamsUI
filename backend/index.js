@@ -26,6 +26,8 @@ import accountingRoutes from './routes/accountingRoutes.js';
 import staffAttendanceRoutes from './routes/staffAttendanceRoutes.js';
 import subjectRoutes from './routes/subjectRoutes.js';
 import ledgerRoutes from './routes/ledgerRoutes.js';
+import leaveRoutes from './routes/leaveRoutes.js';
+import payrollRoutes from './routes/payrollRoutes.js';
 
 app.use('/api/students', studentRoutes);
 app.use('/api/attendance', attendanceRoutes);
@@ -38,6 +40,8 @@ app.use('/api/accounting', accountingRoutes);
 app.use('/api/staff-attendance', staffAttendanceRoutes);
 app.use('/api/subjects', subjectRoutes);
 app.use('/api/ledgers', ledgerRoutes);
+app.use('/api/leaves', leaveRoutes);
+app.use('/api/payroll', payrollRoutes);
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.get('*', (req, res) => {

@@ -30,6 +30,14 @@ const studentSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  parentName: {
+    type: String,
+    required: true
+  },
+  phoneNumber: {
+    type: String,
+    required: true
+  },
   status: {
     type: String,
     enum: ['Active', 'Inactive', 'Alumni'],

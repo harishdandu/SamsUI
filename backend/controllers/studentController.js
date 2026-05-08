@@ -1,11 +1,92 @@
 import Student from '../models/Student.js';
 import StudentFeeInstallment from '../models/StudentFeeInstallment.js';
 import Ledger from '../models/Ledger.js';
+import Staff from '../models/Staff.js';
+import Attendance from '../models/Attendance.js';
 
 export const getAllStudents = async (req, res) => {
   try {
-    const students = await Student.find();
-    res.status(200).json(students);
+    let query = {};
+    
+    // Role-based filtering
+    if (req.user.role === 'Teacher' && req.user.staffId) {
+      const staffMember = await Staff.findById(req.user.staffId);
+      if (staffMember && staffMember.teachingSubjects) {
+        const assignedClasses = [...new Set(
+          staffMember.teachingSubjects.flatMap(sub => sub.classes)
+        )];
+        
+        if (assignedClasses.length > 0) {
+          query.class = { $in: assignedClasses };
+        } else {
+          return res.status(200).json({ students: [], total: 0, page: 1, totalPages: 0 });
+        }
+      }
+    }
+
+    // Pagination
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const total = await Student.countDocuments(query);
+    const students = await Student.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({
+      students,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit)
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getStudentsForAttendance = async (req, res) => {
+  const { class: className, section, date } = req.query;
+  
+  if (!className || !section || !date) {
+    return res.status(400).json({ message: 'Class, section and date are required.' });
+  }
+
+  try {
+    // 1. Get all students for the class and section (excluding sensitive fee data)
+    const students = await Student.find(
+      { class: className, section: section }, 
+      { fees: 0 }
+    ).sort({ rollNumber: 1 });
+    
+    if (students.length === 0) {
+      return res.status(200).json([]);
+    }
+
+    // 2. Get attendance records for these students on the specific date
+    const startOfDay = new Date(date);
+    startOfDay.setUTCHours(0, 0, 0, 0);
+    
+    const endOfDay = new Date(date);
+    endOfDay.setUTCHours(23, 59, 59, 999);
+
+    const attendanceRecords = await Attendance.find({
+      class: className,
+      section: section,
+      date: { $gte: startOfDay, $lte: endOfDay }
+    });
+
+    // 3. Merge attendance status into student objects
+    const studentsWithAttendance = students.map(student => {
+      const attendance = attendanceRecords.find(rec => rec.studentId.toString() === student._id.toString());
+      return {
+        ...student.toObject(),
+        attendanceStatus: attendance ? attendance.status : null
+      };
+    });
+
+    res.status(200).json(studentsWithAttendance);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

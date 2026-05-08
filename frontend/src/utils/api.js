@@ -21,7 +21,8 @@ api.interceptors.request.use((config) => {
 
 
 export const studentApi = {
-  getAll: () => api.get('/students'),
+  getAll: (params) => api.get('/students', { params }),
+  getForAttendance: (params) => api.get('/students/attendance-list', { params }),
   create: (data) => api.post('/students', data),
   update: (id, data) => api.put(`/students/${id}`, data),
   delete: (id) => api.delete(`/students/${id}`),
@@ -42,6 +43,7 @@ export const feeApi = {
 
 export const staffApi = {
   getAll: () => api.get('/staff'),
+  getById: (id) => api.get(`/staff/${id}`),
   create: (data) => api.post('/staff', data),
   update: (id, data) => api.put(`/staff/${id}`, data),
   delete: (id) => api.delete(`/staff/${id}`),
@@ -65,6 +67,20 @@ export const subjectApi = {
 
 export const ledgerApi = {
   getAll: (config) => api.get('/ledgers', config),
+};
+
+export const leaveApi = {
+  apply: (data) => api.post('/leaves/apply', data),
+  getMyLeaves: () => api.get('/leaves/my-leaves'),
+  getAll: () => api.get('/leaves/all'),
+  updateStatus: (id, data) => api.put(`/leaves/${id}/status`, data),
+  getStaffMonthLeaves: (params) => api.get('/leaves/staff-month', { params }),
+};
+
+export const payrollApi = {
+  generate: (data) => api.post('/payroll/generate', data),
+  getMonthPayroll: (params) => api.get('/payroll/month', { params }),
+  getHistory: (staffId) => api.get(`/payroll/history/${staffId}`),
 };
 
 

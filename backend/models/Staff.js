@@ -3,7 +3,6 @@ import mongoose from 'mongoose';
 const staffSchema = new mongoose.Schema({
   employeeId: {
     type: String,
-    required: true,
     unique: true
   },
   firstName: {
@@ -39,13 +38,45 @@ const staffSchema = new mongoose.Schema({
     enum: ['Active', 'On Leave', 'Resigned'],
     default: 'Active'
   },
-  teachingSubjects: [{
+    teachingSubjects: [{
     subjectId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Subject'
     },
     classes: [String]
-  }]
+  }],
+  casualLeaves: {
+    type: Number,
+    default: 0
+  },
+  sickLeaves: {
+    type: Number,
+    default: 0
+  },
+  otherLeaves: {
+    type: Number,
+    default: 0
+  },
+  unpaidLeaves: {
+    type: Number,
+    default: 0
+  },
+  totalCasualLeaves: {
+    type: Number,
+    default: 0
+  },
+  totalSickLeaves: {
+    type: Number,
+    default: 0
+  },
+  totalOtherLeaves: {
+    type: Number,
+    default: 0
+  },
+  totalUnpaidLeaves: {
+    type: Number,
+    default: 0
+  }
 }, { timestamps: true });
 
 staffSchema.pre('save', async function(next) {

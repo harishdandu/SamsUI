@@ -1,9 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { Search, UserPlus, MoreVertical, Filter, Loader2, Edit, Trash2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Search, UserPlus, MoreVertical, Filter, Loader2, Edit, Trash2, Banknote } from 'lucide-react';
 import { staffApi } from '../utils/api';
 import StaffModal from '../components/StaffModal';
+import PayrollModal from '../components/PayrollModal';
+import { useAuth } from '../context/AuthContext';
 
 const Staff = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const menuRef = useRef(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -11,9 +17,29 @@ const Staff = () => {
   const [actionMenuId, setActionMenuId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState(null);
+  const [isPayrollModalOpen, setIsPayrollModalOpen] = useState(false);
+  const [payrollStaff, setPayrollStaff] = useState(null);
+
+  const isAdmin = user?.role?.toLowerCase() === 'admin';
+
+  const handleOpenPayroll = (member) => {
+    setPayrollStaff(member);
+    setIsPayrollModalOpen(true);
+    setActionMenuId(null);
+  };
 
   useEffect(() => {
     fetchStaff();
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setActionMenuId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const fetchStaff = async () => {
@@ -31,17 +57,20 @@ const Staff = () => {
   };
 
   const handleAddStaff = () => {
+    if (!isAdmin) return;
     setSelectedStaff(null);
     setIsModalOpen(true);
   };
 
   const handleEditStaff = (member) => {
+    if (!isAdmin) return;
     setSelectedStaff(member);
     setIsModalOpen(true);
     setActionMenuId(null);
   };
 
   const handleSaveStaff = async (formData) => {
+    if (!isAdmin) return;
     try {
       if (selectedStaff) {
         await staffApi.update(selectedStaff._id, formData);
@@ -56,6 +85,7 @@ const Staff = () => {
   };
 
   const handleDeleteStaff = async (id) => {
+    if (!isAdmin) return;
     if (window.confirm('Are you sure you want to delete this staff record?')) {
       try {
         await staffApi.delete(id);
@@ -69,8 +99,8 @@ const Staff = () => {
 
   const filteredStaff = staff.filter(member => 
     `${member.firstName} ${member.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    member.employeeId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    member.role.toLowerCase().includes(searchTerm.toLowerCase())
+    member.employeeId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    member.role?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -80,10 +110,12 @@ const Staff = () => {
           <h1>Staff Management</h1>
           <p>Manage teachers, admins, and other school staff.</p>
         </div>
-        <button className="btn btn-primary" onClick={handleAddStaff}>
-          <UserPlus size={18} />
-          Add Staff
-        </button>
+        {isAdmin && (
+          <button className="btn btn-primary" onClick={handleAddStaff}>
+            <UserPlus size={18} />
+            Add Staff
+          </button>
+        )}
       </header>
 
       <div className="table-actions card">
@@ -96,10 +128,6 @@ const Staff = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <button className="btn btn-secondary" style={{ border: '1px solid var(--border)' }}>
-          <Filter size={18} />
-          Filter
-        </button>
       </div>
 
       {loading ? (
@@ -122,7 +150,7 @@ const Staff = () => {
                 <th>Role</th>
                 <th>Email</th>
                 <th>Status</th>
-                <th>Action</th>
+                {isAdmin && <th>Action</th>}
               </tr>
             </thead>
             <tbody>
@@ -138,27 +166,32 @@ const Staff = () => {
                         {member.status}
                       </span>
                     </td>
-                    <td className="action-cell">
-                      <button 
-                        className="btn-icon" 
-                        onClick={() => setActionMenuId(actionMenuId === member._id ? null : member._id)}
-                      >
-                        <MoreVertical size={18} color="var(--text-secondary)" />
-                      </button>
-                      {actionMenuId === member._id && (
-                        <div className="action-menu card">
-                          <button onClick={() => handleEditStaff(member)}><Edit size={16} /> Edit</button>
-                          <button className="delete" onClick={() => handleDeleteStaff(member._id)}>
-                            <Trash2 size={16} /> Delete
+                    {isAdmin && (
+                      <td className="action-cell">
+                        <div ref={actionMenuId === member._id ? menuRef : null}>
+                          <button 
+                            className="btn-icon" 
+                            onClick={() => setActionMenuId(actionMenuId === member._id ? null : member._id)}
+                          >
+                            <MoreVertical size={18} color="var(--text-secondary)" />
                           </button>
+                          {actionMenuId === member._id && (
+                            <div className="action-menu card">
+                              <button onClick={() => handleEditStaff(member)}><Edit size={16} /> Edit</button>
+                              <button onClick={() => handleOpenPayroll(member)}><Banknote size={16} /> Payroll</button>
+                              <button className="delete" onClick={() => handleDeleteStaff(member._id)}>
+                                <Trash2 size={16} /> Delete
+                              </button>
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </td>
+                      </td>
+                    )}
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>
+                  <td colSpan={isAdmin ? 6 : 5} style={{ textAlign: 'center', padding: '2rem' }}>
                     No staff records found.
                   </td>
                 </tr>
@@ -168,11 +201,19 @@ const Staff = () => {
         </div>
       )}
 
-      <StaffModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        onSave={handleSaveStaff}
-        staffMember={selectedStaff}
+      {isAdmin && (
+        <StaffModal 
+          isOpen={isModalOpen} 
+          onClose={() => setIsModalOpen(false)} 
+          onSave={handleSaveStaff}
+          staffMember={selectedStaff}
+        />
+      )}
+
+      <PayrollModal 
+        isOpen={isPayrollModalOpen}
+        onClose={() => setIsPayrollModalOpen(false)}
+        staff={payrollStaff}
       />
 
       <style>{`

@@ -1,9 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Save, Loader2, CheckCircle2 } from 'lucide-react';
-import { studentApi, attendanceApi } from '../utils/api';
+import { studentApi, attendanceApi, staffApi } from '../utils/api';
+import { useAuth } from '../context/AuthContext';
 
 const Attendance = () => {
+  const { user } = useAuth();
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [teacherClasses, setTeacherClasses] = useState([]);
+  const [loadingClasses, setLoadingClasses] = useState(user?.role?.toLowerCase() === 'teacher');
+  
+  const isAdmin = user?.role?.toLowerCase() === 'admin' || user?.role?.toLowerCase() === 'super admin';
+  
   const [className, setClassName] = useState('1');
   const [section, setSection] = useState('A');
   const [students, setStudents] = useState([]);
@@ -14,40 +21,64 @@ const Attendance = () => {
   const [attendanceExists, setAttendanceExists] = useState(false);
 
   useEffect(() => {
-    fetchStudents();
-  }, [className, section, date]);
+    const role = user?.role?.toLowerCase();
+    if (role === 'teacher' && user.staffId) {
+      fetchTeacherClasses();
+    } else {
+      setLoadingClasses(false);
+      // For Admins, ensure className is '1' if not already set
+      if (isAdmin) setClassName('1');
+    }
+  }, [user, isAdmin]);
+
+  const fetchTeacherClasses = async () => {
+    try {
+      const response = await staffApi.getById(user.staffId);
+      const currentStaff = response.data;
+      if (currentStaff && currentStaff.teachingSubjects) {
+        const classes = [...new Set(currentStaff.teachingSubjects.flatMap(sub => sub.classes))];
+        setTeacherClasses(classes);
+        if (classes.length > 0) {
+          setClassName(classes[0]);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching teacher classes:', err);
+    } finally {
+      setLoadingClasses(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!loadingClasses) {
+      fetchStudents();
+    }
+  }, [className, section, date, loadingClasses]);
+
+  const classOptions = isAdmin 
+    ? Array.from({ length: 10 }, (_, i) => (i + 1).toString())
+    : teacherClasses;
 
   const fetchStudents = async () => {
+    if (loadingClasses) return;
     setLoading(true);
     setStudents([]);
     setAttendanceData({});
     try {
-      const response = await studentApi.getAll();
-      // Filter students by class and section
-      const filtered = response.data.filter(s => s.class === className && s.section === section);
-      setStudents(filtered);
+      const response = await studentApi.getForAttendance({ class: className, section, date });
+      const studentList = response.data;
+      setStudents(studentList);
       
-      // Initialize attendance data (Present by default)
       const initial = {};
-      filtered.forEach(s => {
-        initial[s._id] = 'Present';
+      let exists = false;
+      studentList.forEach(s => {
+        initial[s._id] = s.attendanceStatus || 'Present';
+        if (s.attendanceStatus) exists = true;
       });
       setAttendanceData(initial);
-      
-      // Try to fetch existing attendance for this day
-      const existing = await attendanceApi.getByFilter({ class: className, section, date });
-      if (existing.data.length > 0) {
-        setAttendanceExists(true);
-        const mapped = {};
-        existing.data.forEach(rec => {
-          mapped[rec.studentId._id || rec.studentId] = rec.status;
-        });
-        setAttendanceData(prev => ({ ...prev, ...mapped }));
-      } else {
-        setAttendanceExists(false);
-      }
+      setAttendanceExists(exists);
     } catch (err) {
-      console.error('Error fetching students/attendance:', err);
+      console.error('Error fetching students for attendance:', err);
     } finally {
       setLoading(false);
     }
@@ -116,7 +147,7 @@ const Attendance = () => {
         <div className="form-group">
           <label className="form-label">Class</label>
           <select className="form-input" value={className} onChange={(e) => setClassName(e.target.value)}>
-            {Array.from({ length: 10 }, (_, i) => (i + 1).toString()).map(c => <option key={c} value={c}>Class {c}</option>)}
+            {classOptions.map(c => <option key={c} value={c}>Class {c}</option>)}
           </select>
         </div>
         <div className="form-group">

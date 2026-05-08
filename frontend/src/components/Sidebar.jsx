@@ -29,17 +29,23 @@ const Sidebar = () => {
     { name: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/' },
     { name: 'Students', icon: <Users size={20} />, path: '/students' },
     { name: 'Staff', icon: <Users size={20} />, path: '/staff' },
-    { name: 'Staff Attendance', icon: <CalendarCheck size={20} />, path: '/staff-attendance' },
-    { name: 'Attendance', icon: <CalendarCheck size={20} />, path: '/attendance' },
-    { name: 'Fees', icon: <CreditCard size={20} />, path: '/fees' },
-    { name: 'Pending Fees', icon: <Clock size={20} />, path: '/pending-fees' },
-    { name: 'Ledgers', icon: <BookOpen size={20} />, path: '/ledger', roles: ['admin'] },
-    { name: 'Subjects', icon: <Book size={20} />, path: '/subjects' },
+    // { name: 'Staff Payroll', icon: <CalendarCheck size={20} />, path: '/staff-payroll', roles: ['admin'] },
+    { name: 'Attendance', icon: <CalendarCheck size={20} />, path: '/attendance', roles: ['admin', 'teacher'] },
+    { name: 'Fees', icon: <CreditCard size={20} />, path: '/fees', roles: ['admin','hr','accountant'] },
+    { name: 'Pending Fees', icon: <Clock size={20} />, path: '/pending-fees', roles: ['admin','hr','accountant'] },
+    { name: 'Ledgers', icon: <BookOpen size={20} />, path: '/ledger', roles: ['admin','hr','accountant'] },
+    { name: 'Subjects', icon: <Book size={20} />, path: '/subjects', roles: ['admin'] },
     { name: 'AI Test Gen', icon: <Sparkles size={20} />, path: '/test-gen' },
     { name: 'Accounting', icon: <BarChart3 size={20} />, path: '/accounting' },
+    { name: 'Leave Tracker', icon: <CalendarCheck size={20} />, path: '/leave-tracker', roles: ['hr', 'teacher', 'accountant'] },
+    { name: 'Track Leaves', icon: <CalendarCheck size={20} />, path: '/admin/leaves', roles: ['admin', 'hr'] },
   ];
 
-  const filteredItems = menuItems.filter(item => !item.roles || item.roles.includes(user?.role));
+  const filteredItems = menuItems.filter(item => {
+    if (!item.roles) return true;
+    const userRole = user?.role?.toLowerCase();
+    return item.roles.some(role => role.toLowerCase() === userRole);
+  });
 
   return (
     <aside className="sidebar">

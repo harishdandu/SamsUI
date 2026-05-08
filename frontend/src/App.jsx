@@ -5,7 +5,7 @@ import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
 import Students from './pages/Students';
 import Staff from './pages/Staff';
-import StaffAttendance from './pages/StaffAttendance';
+import StaffPayroll from './pages/StaffPayroll';
 import Attendance from './pages/Attendance';
 import Fees from './pages/Fees';
 import Subjects from './pages/Subjects';
@@ -16,6 +16,8 @@ import Ledger from './pages/Ledger';
 import Login from './pages/Login';
 import ChangePassword from './pages/ChangePassword';
 import ForgotPassword from './pages/ForgotPassword';
+import LeaveTracker from './pages/LeaveTracker';
+import AdminLeaveTracker from './pages/AdminLeaveTracker';
 
 const ProtectedRoute = ({ children }) => {
   const { token, loading } = useAuth();
@@ -41,7 +43,7 @@ function App() {
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/students" element={<ProtectedRoute><Students /></ProtectedRoute>} />
           <Route path="/staff" element={<ProtectedRoute><Staff /></ProtectedRoute>} />
-          <Route path="/staff-attendance" element={<ProtectedRoute><StaffAttendance /></ProtectedRoute>} />
+          <Route path="/staff-payroll" element={<ProtectedRoute><StaffPayroll /></ProtectedRoute>} />
           <Route path="/attendance" element={<ProtectedRoute><Attendance /></ProtectedRoute>} />
           <Route path="/fees" element={<ProtectedRoute><Fees /></ProtectedRoute>} />
           <Route path="/subjects" element={<ProtectedRoute><Subjects /></ProtectedRoute>} />
@@ -49,6 +51,8 @@ function App() {
           <Route path="/accounting" element={<ProtectedRoute><Accounting /></ProtectedRoute>} />
           <Route path="/pending-fees" element={<ProtectedRoute><PendingFees /></ProtectedRoute>} />
           <Route path="/ledger" element={<ProtectedRoute><Ledger /></ProtectedRoute>} />
+          <Route path="/leave-tracker" element={<ProtectedRoute><LeaveTracker /></ProtectedRoute>} />
+          <Route path="/admin/leaves" element={<ProtectedRoute><AdminLeaveTracker /></ProtectedRoute>} />
           <Route path="/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" />} />

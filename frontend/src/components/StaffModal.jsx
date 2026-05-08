@@ -15,14 +15,19 @@ const StaffModal = ({ isOpen, onClose, onSave, staffMember = null }) => {
     status: 'Active',
     salary: 0,
     joiningDate: new Date().toISOString().split('T')[0],
-    teachingSubjects: [] // Array of { subjectId, classes }
+    teachingSubjects: [], // Array of { subjectId, classes }
+    casualLeaves: 0,
+    sickLeaves: 0,
+    otherLeaves: 0
   });
   
   const [availableSubjects, setAvailableSubjects] = useState([]);
 
   useEffect(() => {
-    fetchSubjects();
-  }, []);
+    if (isOpen) {
+      fetchSubjects();
+    }
+  }, [isOpen]);
 
   const fetchSubjects = async () => {
     try {
@@ -54,7 +59,10 @@ const StaffModal = ({ isOpen, onClose, onSave, staffMember = null }) => {
         status: 'Active',
         salary: 0,
         joiningDate: new Date().toISOString().split('T')[0],
-        teachingSubjects: [{ subjectId: '', classes: [] }]
+        teachingSubjects: [{ subjectId: '', classes: [] }],
+        casualLeaves: 0,
+        sickLeaves: 0,
+        otherLeaves: 0
       });
     }
   }, [staffMember, isOpen]);
@@ -216,6 +224,31 @@ const StaffModal = ({ isOpen, onClose, onSave, staffMember = null }) => {
             </div>
           </div>
 
+          <div className="form-section-title">Leave Balance</div>
+          <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
+            <div className="form-group">
+              <label className="form-label">Casual Leaves</label>
+              <input 
+                type="number" name="casualLeaves" className="form-input" 
+                value={formData.casualLeaves} onChange={handleChange} min="0"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Sick Leaves</label>
+              <input 
+                type="number" name="sickLeaves" className="form-input" 
+                value={formData.sickLeaves} onChange={handleChange} min="0"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Other Leaves</label>
+              <input 
+                type="number" name="otherLeaves" className="form-input" 
+                value={formData.otherLeaves} onChange={handleChange} min="0"
+              />
+            </div>
+          </div>
+
           <div className="modal-footer">
             <button type="button" className="btn" onClick={onClose}>Cancel</button>
             <button type="submit" className="btn btn-primary" disabled={loading}>
@@ -231,6 +264,7 @@ const StaffModal = ({ isOpen, onClose, onSave, staffMember = null }) => {
         .modal-content { width: 100%; max-width: 650px; max-height: 90vh; overflow-y: auto; padding: 2.5rem; position: relative; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; position: sticky; top: -2.5rem; background: var(--surface); z-index: 5; padding: 1rem 0; margin-top: -1rem; border-bottom: 1px solid var(--border); }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+        .form-section-title { font-size: 0.875rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin: 1.5rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
         .modal-footer { display: flex; justify-content: flex-end; gap: 1rem; padding-top: 1.5rem; border-top: 1px solid var(--border); margin-top: 2rem; position: sticky; bottom: -2.5rem; background: var(--surface); z-index: 5; padding-bottom: 1rem; margin-bottom: -1rem; }
         
         .teaching-subjects-section { margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.5rem; margin-bottom: 2rem; }

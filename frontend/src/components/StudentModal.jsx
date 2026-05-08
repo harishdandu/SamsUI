@@ -5,6 +5,8 @@ const StudentModal = ({ isOpen, onClose, onSave, student = null }) => {
   const initialState = {
     firstName: '',
     lastName: '',
+    parentName: '',
+    phoneNumber: '',
     class: '8',
     section: 'A',
     fees: 0,
@@ -23,6 +25,8 @@ const StudentModal = ({ isOpen, onClose, onSave, student = null }) => {
       setFormData({
         firstName: student.firstName || '',
         lastName: student.lastName || '',
+        parentName: student.parentName || '',
+        phoneNumber: student.phoneNumber || '',
         class: student.class || '8',
         section: student.section || 'A',
         fees: student.fees?.amount || 0,
@@ -158,6 +162,28 @@ const StudentModal = ({ isOpen, onClose, onSave, student = null }) => {
                 name="lastName"
                 className="form-input" 
                 value={formData.lastName}
+                onChange={handleChange}
+                required 
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Mother/Father Name</label>
+              <input 
+                type="text" 
+                name="parentName"
+                className="form-input" 
+                value={formData.parentName}
+                onChange={handleChange}
+                required 
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Phone Number</label>
+              <input 
+                type="tel" 
+                name="phoneNumber"
+                className="form-input" 
+                value={formData.phoneNumber}
                 onChange={handleChange}
                 required 
               />

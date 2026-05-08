@@ -40,14 +40,21 @@ export const login = async (req, res) => {
         { username: username },
         { email: username }
       ]
-    }).select('+password');
+    }).select('+password').populate('staffId');
     
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({ message: 'Incorrect username or password' });
     }
 
     const token = signToken(user._id);
-    user.password = undefined; // Hide password in response
+    
+    // Extract assigned classes if the user is a teacher
+    let assignedClasses = [];
+    if (user.role === 'Teacher' && user.staffId) {
+      assignedClasses = [...new Set(
+        user.staffId.teachingSubjects.flatMap(sub => sub.classes)
+      )];
+    }
 
     res.status(200).json({
       status: 'success',
@@ -58,7 +65,18 @@ export const login = async (req, res) => {
           username: user.username,
           email: user.email,
           role: user.role,
-          staffId: user.staffId
+          staffId: user.staffId?._id || user.staffId,
+          assignedClasses, // Include assigned classes for frontend filtering
+          leaveBalance: user.staffId ? {
+            casual: user.staffId.casualLeaves,
+            totalCasual: user.staffId.totalCasualLeaves,
+            sick: user.staffId.sickLeaves,
+            totalSick: user.staffId.totalSickLeaves,
+            other: user.staffId.otherLeaves,
+            totalOther: user.staffId.totalOtherLeaves,
+            unpaid: user.staffId.unpaidLeaves,
+            totalUnpaid: user.staffId.totalUnpaidLeaves
+          } : null
         }
       }
     });
