@@ -110,6 +110,7 @@ export const requestPasswordOTP = async (req, res) => {
       });
       res.status(200).json({ status: 'success', message: 'OTP sent to email!' });
     } catch (err) {
+      console.error('Email error (requestPasswordOTP):', err);
       user.passwordOTP = undefined;
       user.passwordOTPExpires = undefined;
       await user.save({ validateBeforeSave: false });
@@ -158,6 +159,7 @@ export const forgotPassword = async (req, res) => {
       });
       res.status(200).json({ status: 'success', message: 'OTP sent!' });
     } catch (err) {
+      console.error('Email error (forgotPassword):', err);
       user.passwordOTP = undefined;
       user.passwordOTPExpires = undefined;
       await user.save({ validateBeforeSave: false });
