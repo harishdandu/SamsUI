@@ -14,22 +14,21 @@ const sendEmail = async (options) => {
   // 1) Create a transporter configuration
   let transporterConfig;
 
-  // For Gmail on Render, port 465 with secure: true is the most reliable
+  // Use service: 'gmail' as it is generally the most robust
   if (process.env.SMTP_HOST?.includes('gmail.com') || process.env.SMTP_USER?.includes('gmail.com')) {
     transporterConfig = {
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true, // Use SSL
+      service: 'gmail',
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS
       },
       tls: {
         rejectUnauthorized: false
-      }
+      },
+      debug: true, // Enable debug output
+      logger: true  // Log to console
     };
   } else {
-    // Generic configuration for other services
     transporterConfig = {
       host: process.env.SMTP_HOST || 'smtp.gmail.com',
       port: parseInt(process.env.SMTP_PORT, 10) || 587,
@@ -43,6 +42,14 @@ const sendEmail = async (options) => {
       }
     };
   }
+
+  console.log('📧 Initializing email transporter with config:', {
+    service: transporterConfig.service,
+    host: transporterConfig.host,
+    port: transporterConfig.port,
+    secure: transporterConfig.secure,
+    user: transporterConfig.auth.user
+  });
 
   const transporter = nodemailer.createTransport(transporterConfig);
 
