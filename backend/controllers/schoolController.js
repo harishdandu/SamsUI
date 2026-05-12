@@ -18,6 +18,7 @@ export const registerSchool = async (req, res) => {
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    console.log(`🔑 DEBUG: Generated OTP for ${email}: ${otp}`);
     const otpHash = await bcrypt.hash(otp, 12);
     const otpExpires = Date.now() + 10 * 60 * 1000; // 10 mins
 
