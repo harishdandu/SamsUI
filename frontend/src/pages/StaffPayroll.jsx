@@ -23,7 +23,7 @@ const StaffPayroll = () => {
   const fetchStaff = async () => {
     setLoading(true);
     try {
-      const res = await staffApi.getAll();
+      const res = await staffApi.getAll({ schoolId: user?.schoolId });
       setStaff(res.data);
     } catch (err) {
       console.error('Error fetching staff:', err);

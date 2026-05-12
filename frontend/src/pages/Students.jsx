@@ -40,7 +40,8 @@ const Students = () => {
       const response = await studentApi.getAll({ 
         page, 
         limit,
-        search: searchTerm 
+        search: searchTerm,
+        schoolId: user?.schoolId
       });
       
       const { students: studentList, total, totalPages: pages } = response.data;

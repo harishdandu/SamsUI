@@ -25,6 +25,10 @@ const staffSchema = new mongoose.Schema({
     unique: true
   },
   phone: String,
+  schoolId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'SchoolProfile'
+  },
   joinDate: {
     type: Date,
     default: Date.now

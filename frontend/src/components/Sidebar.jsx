@@ -13,7 +13,8 @@ import {
   Lock,
   Clock,
   LogOut,
-  BookOpen
+  BookOpen,
+  Layers
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -29,22 +30,37 @@ const Sidebar = () => {
     { name: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/' },
     { name: 'Students', icon: <Users size={20} />, path: '/students' },
     { name: 'Staff', icon: <Users size={20} />, path: '/staff' },
-    // { name: 'Staff Payroll', icon: <CalendarCheck size={20} />, path: '/staff-payroll', roles: ['admin'] },
+    { name: 'Staff Payroll', icon: <CalendarCheck size={20} />, path: '/staff-payroll', roles: ['admin'], visibleAfter: 25 },
     { name: 'Attendance', icon: <CalendarCheck size={20} />, path: '/attendance', roles: ['admin', 'teacher'] },
     { name: 'Fees', icon: <CreditCard size={20} />, path: '/fees', roles: ['admin','hr','accountant'] },
     { name: 'Pending Fees', icon: <Clock size={20} />, path: '/pending-fees', roles: ['admin','hr','accountant'] },
     { name: 'Ledgers', icon: <BookOpen size={20} />, path: '/ledger', roles: ['admin','hr','accountant'] },
     { name: 'Subjects', icon: <Book size={20} />, path: '/subjects', roles: ['admin'] },
+    { name: 'Classes', icon: <Layers size={20} />, path: '/classes', roles: ['admin'] },
     { name: 'AI Test Gen', icon: <Sparkles size={20} />, path: '/test-gen' },
     { name: 'Accounting', icon: <BarChart3 size={20} />, path: '/accounting' },
     { name: 'Leave Tracker', icon: <CalendarCheck size={20} />, path: '/leave-tracker', roles: ['hr', 'teacher', 'accountant'] },
     { name: 'Track Leaves', icon: <CalendarCheck size={20} />, path: '/admin/leaves', roles: ['admin', 'hr'] },
+    { name: 'Profile', icon: <Users size={20} />, path: '/school-profile', roles: ['admin'] },
   ];
 
   const filteredItems = menuItems.filter(item => {
+    // If school profile is not completed, only show the Profile page for Admin
+    if (user?.role === 'Admin' && !user?.isProfileCompleted) {
+      return item.name === 'Profile';
+    }
+
     if (!item.roles) return true;
     const userRole = user?.role?.toLowerCase();
-    return item.roles.some(role => role.toLowerCase() === userRole);
+    const isRoleAllowed = item.roles.some(role => role.toLowerCase() === userRole);
+    
+    // Check for date-based visibility
+    if (item.visibleAfter && isRoleAllowed) {
+      const today = new Date().getDate();
+      return today >= item.visibleAfter;
+    }
+
+    return isRoleAllowed;
   });
 
   return (
@@ -74,10 +90,12 @@ const Sidebar = () => {
             <p className="user-role">{user?.role}</p>
           </div>
         </div>
-        <NavLink to="/change-password" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-          <Lock size={20} />
-          <span>Change Password</span>
-        </NavLink>
+        {! (user?.role === 'Admin' && !user?.isProfileCompleted) && (
+          <NavLink to="/change-password" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+            <Lock size={20} />
+            <span>Change Password</span>
+          </NavLink>
+        )}
         <button className="logout-btn nav-item" onClick={handleLogout}>
           <LogOut size={20} />
           <span>Log Out</span>

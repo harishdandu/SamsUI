@@ -42,7 +42,7 @@ export const feeApi = {
 };
 
 export const staffApi = {
-  getAll: () => api.get('/staff'),
+  getAll: (params) => api.get('/staff', { params }),
   getById: (id) => api.get(`/staff/${id}`),
   create: (data) => api.post('/staff', data),
   update: (id, data) => api.put(`/staff/${id}`, data),
@@ -59,7 +59,7 @@ export const staffAttendanceApi = {
 };
 
 export const subjectApi = {
-  getAll: () => api.get('/subjects'),
+  getAll: (params) => api.get('/subjects', { params }),
   create: (data) => api.post('/subjects', data),
   update: (id, data) => api.put(`/subjects/${id}`, data),
   delete: (id) => api.delete(`/subjects/${id}`),
@@ -83,8 +83,17 @@ export const payrollApi = {
   getHistory: (staffId) => api.get(`/payroll/history/${staffId}`),
 };
 
+export const schoolApi = {
+  register: (data) => api.post('/schools/register', data),
+  verifyOTP: (data) => api.post('/schools/verify-otp', data),
+};
 
-
+export const classApi = {
+  getAll: (params) => api.get('/classes', { params }),
+  upsert: (data) => api.post('/classes', data),
+  bulkUpdate: (data) => api.post('/classes/bulk', data),
+  delete: (id) => api.delete(`/classes/${id}`),
+};
 
 
 export default api;

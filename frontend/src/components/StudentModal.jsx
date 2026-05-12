@@ -106,10 +106,12 @@ const StudentModal = ({ isOpen, onClose, onSave, student = null }) => {
     setLoading(true);
     try {
       const installments = calculateInstallments();
+      const user = JSON.parse(localStorage.getItem('user'));
       
       // Map frontend fees to backend structure
       const studentData = {
         ...formData,
+        schoolId: user?.schoolId,
         fees: { 
           amount: Number(formData.fees),
           firstInstallmentAmount: Number(formData.firstInstallmentAmount),

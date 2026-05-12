@@ -6,9 +6,25 @@ import Attendance from '../models/Attendance.js';
 
 export const getAllStudents = async (req, res) => {
   try {
-    let query = {};
+    const schoolId = req.user.schoolId;
+    if (!schoolId) {
+      return res.status(400).json({ message: 'User is not affiliated with any school.' });
+    }
+
+    let query = { schoolId };
     
-    // Role-based filtering
+    // Search functionality
+    if (req.query.search) {
+      const searchRegex = new RegExp(req.query.search, 'i');
+      query.$or = [
+        { firstName: searchRegex },
+        { lastName: searchRegex },
+        { parentName: searchRegex },
+        { phoneNumber: searchRegex }
+      ];
+    }
+
+    // Role-based filtering for teachers (only show students in their assigned classes)
     if (req.user.role === 'Teacher' && req.user.staffId) {
       const staffMember = await Staff.findById(req.user.staffId);
       if (staffMember && staffMember.teachingSubjects) {
@@ -54,9 +70,11 @@ export const getStudentsForAttendance = async (req, res) => {
   }
 
   try {
+    const schoolId = req.user.schoolId;
+    
     // 1. Get all students for the class and section (excluding sensitive fee data)
     const students = await Student.find(
-      { class: className, section: section }, 
+      { schoolId, class: className, section: section }, 
       { fees: 0 }
     ).sort({ rollNumber: 1 });
     
@@ -96,7 +114,12 @@ export const createStudent = async (req, res) => {
   const { installments, ...studentData } = req.body;
   
   try {
-    const newStudent = new Student(studentData);
+    const schoolId = req.user.schoolId;
+    if (!schoolId) {
+      return res.status(400).json({ message: 'User is not affiliated with any school.' });
+    }
+
+    const newStudent = new Student({ ...studentData, schoolId });
     await newStudent.save();
 
     if (installments && installments.length > 0) {

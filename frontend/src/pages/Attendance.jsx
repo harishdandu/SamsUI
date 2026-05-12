@@ -65,7 +65,12 @@ const Attendance = () => {
     setStudents([]);
     setAttendanceData({});
     try {
-      const response = await studentApi.getForAttendance({ class: className, section, date });
+      const response = await studentApi.getForAttendance({ 
+        class: className, 
+        section, 
+        date,
+        schoolId: user?.schoolId 
+      });
       const studentList = response.data;
       setStudents(studentList);
       
@@ -96,7 +101,8 @@ const Attendance = () => {
         status,
         date,
         class: className,
-        section
+        section,
+        schoolId: user?.schoolId
       }));
       await attendanceApi.markBulk(records);
       setMessage({ type: 'success', text: 'Attendance saved successfully!' });

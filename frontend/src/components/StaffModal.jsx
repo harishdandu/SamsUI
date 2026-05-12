@@ -31,7 +31,8 @@ const StaffModal = ({ isOpen, onClose, onSave, staffMember = null }) => {
 
   const fetchSubjects = async () => {
     try {
-      const res = await subjectApi.getAll();
+      const user = JSON.parse(localStorage.getItem('user'));
+      const res = await subjectApi.getAll({ schoolId: user?.schoolId });
       setAvailableSubjects(res.data);
     } catch (err) {
       console.error('Error fetching subjects:', err);
@@ -104,7 +105,19 @@ const StaffModal = ({ isOpen, onClose, onSave, staffMember = null }) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await onSave(formData);
+      const user = JSON.parse(localStorage.getItem('user'));
+      
+      // Clean up teachingSubjects to avoid BSON errors for non-teachers or empty selections
+      const cleanedTeachingSubjects = formData.role === 'Teacher' 
+        ? (formData.teachingSubjects || []).filter(ts => ts.subjectId && ts.subjectId !== '')
+        : [];
+
+      const dataToSave = {
+        ...formData,
+        schoolId: user?.schoolId,
+        teachingSubjects: cleanedTeachingSubjects
+      };
+      await onSave(dataToSave);
       onClose();
     } catch (err) {
       console.error('Error saving staff:', err);

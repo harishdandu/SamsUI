@@ -40,7 +40,7 @@ export const login = async (req, res) => {
         { username: username },
         { email: username }
       ]
-    }).select('+password').populate('staffId');
+    }).select('+password').populate('staffId').populate('schoolId');
     
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({ message: 'Incorrect username or password' });
@@ -66,6 +66,10 @@ export const login = async (req, res) => {
           email: user.email,
           role: user.role,
           staffId: user.staffId?._id || user.staffId,
+          schoolId: user.schoolId?._id || user.schoolId,
+          schoolName: user.schoolId?.schoolName,
+          schoolRegistrationNumber: user.schoolId?.registrationNumber,
+          isProfileCompleted: user.schoolId?.isProfileCompleted,
           assignedClasses, // Include assigned classes for frontend filtering
           leaveBalance: user.staffId ? {
             casual: user.staffId.casualLeaves,

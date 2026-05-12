@@ -52,7 +52,12 @@ const SubjectModal = ({ isOpen, onClose, onSave, subject = null }) => {
     }
     setLoading(true);
     try {
-      await onSave(formData);
+      const user = JSON.parse(localStorage.getItem('user'));
+      const dataToSave = {
+        ...formData,
+        schoolId: user?.schoolId
+      };
+      await onSave(dataToSave);
       onClose();
     } catch (err) {
       console.error('Error saving subject:', err);

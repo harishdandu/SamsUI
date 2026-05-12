@@ -5,7 +5,11 @@ import crypto from 'crypto';
 
 export const getAllStaff = async (req, res) => {
   try {
-    const staff = await Staff.find();
+    const schoolId = req.query.schoolId || req.user.schoolId;
+    if (!schoolId) {
+      return res.status(400).json({ message: 'School ID is required to fetch staff.' });
+    }
+    const staff = await Staff.find({ schoolId });
     res.status(200).json(staff);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -24,9 +28,22 @@ export const getStaffById = async (req, res) => {
 
 export const createStaff = async (req, res) => {
   const staffData = req.body;
-  const newStaff = new Staff(staffData);
-  
+  const schoolId = staffData.schoolId || req.user.schoolId;
+
+  if (!schoolId) {
+    return res.status(400).json({ message: 'School affiliation is required.' });
+  }
+
   try {
+    // 0. Check for existing email (global uniqueness)
+    const existingStaff = await Staff.findOne({ email: staffData.email });
+    const existingUser = await User.findOne({ email: staffData.email });
+    if (existingStaff || existingUser) {
+      return res.status(400).json({ message: 'Email is already in use by another staff member or user.' });
+    }
+
+    const newStaff = new Staff({ ...staffData, schoolId });
+    
     // 1. Initialize total leave fields from initial balances
     newStaff.totalCasualLeaves = newStaff.casualLeaves || 0;
     newStaff.totalSickLeaves = newStaff.sickLeaves || 0;
@@ -36,19 +53,20 @@ export const createStaff = async (req, res) => {
     // 2. Save the Staff record
     await newStaff.save();
 
-    // 2. Generate a random temporary password
-    const tempPassword = crypto.randomBytes(4).toString('hex'); // 8 character random hex
+    // 3. Generate a random temporary password
+    const tempPassword = crypto.randomBytes(4).toString('hex'); 
 
-    // 3. Create the User record
-    const newUser = await User.create({
+    // 4. Create the User record
+    await User.create({
       username: newStaff.email,
       email: newStaff.email,
       password: tempPassword,
       role: newStaff.role,
-      staffId: newStaff._id
+      staffId: newStaff._id,
+      schoolId: schoolId
     });
 
-    // 4. Send email to the staff member
+    // 5. Send email to the staff member
     try {
       await sendEmail({
         email: newStaff.email,
@@ -68,7 +86,6 @@ export const createStaff = async (req, res) => {
       });
     } catch (emailError) {
       console.error('Error sending welcome email:', emailError);
-      // We don't fail the whole request if email fails, but we log it
     }
 
     res.status(201).json({

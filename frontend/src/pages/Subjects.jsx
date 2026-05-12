@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Search, BookPlus, Edit, Trash2, Loader2, Book } from 'lucide-react';
 import { subjectApi } from '../utils/api';
 import SubjectModal from '../components/SubjectModal';
+import { useAuth } from '../context/AuthContext';
 
 const Subjects = () => {
+  const { user } = useAuth();
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -17,7 +19,7 @@ const Subjects = () => {
   const fetchSubjects = async () => {
     try {
       setLoading(true);
-      const res = await subjectApi.getAll();
+      const res = await subjectApi.getAll({ schoolId: user?.schoolId });
       setSubjects(res.data);
     } catch (err) {
       console.error('Error fetching subjects:', err);

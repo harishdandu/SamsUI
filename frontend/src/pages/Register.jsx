@@ -1,0 +1,243 @@
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Mail, Lock, Building, ArrowRight, ShieldCheck, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { schoolApi } from '../utils/api';
+
+const Register = () => {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    email: '',
+    schoolName: '',
+    registrationNumber: '',
+    password: '',
+    confirmPassword: ''
+  });
+  const [otp, setOtp] = useState('');
+  const [step, setStep] = useState(1); // 1: Details, 2: OTP
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(null);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    if (formData.password !== formData.confirmPassword) {
+      return setMessage({ type: 'error', text: 'Passwords do not match!' });
+    }
+
+    setLoading(true);
+    setMessage(null);
+    try {
+      await schoolApi.register(formData);
+      setStep(2);
+      setMessage({ type: 'success', text: 'OTP sent to your email. Please verify.' });
+    } catch (err) {
+      setMessage({ type: 'error', text: err.response?.data?.message || 'Registration failed.' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerify = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage(null);
+    try {
+      await schoolApi.verifyOTP({ 
+        email: formData.email, 
+        otp,
+        password: formData.password 
+      });
+      setMessage({ type: 'success', text: 'Registration successful! Admin account created. Redirecting to login...' });
+      setTimeout(() => navigate('/login'), 3000);
+    } catch (err) {
+      setMessage({ type: 'error', text: err.response?.data?.message || 'Invalid OTP.' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="auth-container">
+      <div className="auth-card">
+        <div className="auth-header">
+          <div className="logo-section">
+            <div className="logo-icon">S</div>
+            <h1>SAMS Elite</h1>
+          </div>
+          <h2>{step === 1 ? 'School Registration' : 'Verify Email'}</h2>
+          <p>{step === 1 ? 'Join our elite school management network' : `Enter the 6-digit code sent to ${formData.email}`}</p>
+        </div>
+
+        {message && (
+          <div className={`message-alert ${message.type}`}>
+            {message.type === 'error' ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />}
+            <span>{message.text}</span>
+          </div>
+        )}
+
+        <form onSubmit={step === 1 ? handleRegister : handleVerify}>
+          <div className="form-group">
+            <label className="form-label">School Name</label>
+            <div className={`input-wrapper ${step === 2 ? 'disabled' : ''}`}>
+              <Building size={18} />
+              <input 
+                type="text" 
+                name="schoolName"
+                placeholder="Elite International School"
+                value={formData.schoolName}
+                onChange={handleChange}
+                disabled={step === 2}
+                required 
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Email Address</label>
+            <div className={`input-wrapper ${step === 2 ? 'disabled' : ''}`}>
+              <Mail size={18} />
+              <input 
+                type="email" 
+                name="email"
+                placeholder="school@example.com"
+                value={formData.email}
+                onChange={handleChange}
+                disabled={step === 2}
+                required 
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">School Registration Number</label>
+            <div className={`input-wrapper ${step === 2 ? 'disabled' : ''}`}>
+              <Building size={18} />
+              <input 
+                type="text" 
+                name="registrationNumber"
+                placeholder="REG123456"
+                value={formData.registrationNumber}
+                onChange={handleChange}
+                disabled={step === 2}
+                required 
+              />
+            </div>
+          </div>
+
+          {step === 1 ? (
+            <>
+              <div className="form-group">
+                <label className="form-label">Password</label>
+                <div className="input-wrapper">
+                  <Lock size={18} />
+                  <input 
+                    type="password" 
+                    name="password"
+                    placeholder="••••••••"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required 
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Confirm Password</label>
+                <div className="input-wrapper">
+                  <Lock size={18} />
+                  <input 
+                    type="password" 
+                    name="confirmPassword"
+                    placeholder="••••••••"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    required 
+                  />
+                </div>
+              </div>
+
+              <button className="auth-btn" type="submit" disabled={loading}>
+                {loading ? <Loader2 size={20} className="animate-spin" /> : <>Get OTP <ArrowRight size={18} /></>}
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="form-group">
+                <label className="form-label">Enter OTP</label>
+                <div className="input-wrapper">
+                  <ShieldCheck size={18} />
+                  <input 
+                    type="text" 
+                    placeholder="6-digit OTP"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    maxLength={6}
+                    required 
+                  />
+                </div>
+              </div>
+
+              <button className="auth-btn verify" type="submit" disabled={loading}>
+                {loading ? <Loader2 size={20} className="animate-spin" /> : 'Complete Registration'}
+              </button>
+              
+              <button 
+                type="button" 
+                className="btn-link center" 
+                style={{ marginTop: '1rem', width: '100%' }}
+                onClick={() => setStep(1)}
+              >
+                Back to Details
+              </button>
+            </>
+          )}
+        </form>
+
+        <div className="auth-footer">
+          <p>Already have an account? <Link to="/login">Sign In</Link></p>
+        </div>
+      </div>
+
+      <style>{`
+        .auth-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #f8fafc; padding: 2rem; }
+        .auth-card { background: white; padding: 2.5rem; border-radius: 1.5rem; width: 100%; max-width: 450px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05); }
+        .auth-header { text-align: center; margin-bottom: 2rem; }
+        .logo-section { display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-bottom: 1.5rem; }
+        .logo-icon { width: 40px; height: 40px; background: #4f46e5; color: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.5rem; }
+        .logo-section h1 { font-size: 1.5rem; font-weight: 800; color: #1e293b; margin: 0; }
+        .auth-header h2 { font-size: 1.25rem; font-weight: 700; color: #1e293b; margin-bottom: 0.5rem; }
+        .auth-header p { color: #64748b; font-size: 0.875rem; }
+        
+        .message-alert { display: flex; align-items: center; gap: 0.75rem; padding: 1rem; border-radius: var(--radius); margin-bottom: 1.5rem; font-size: 0.875rem; font-weight: 500; }
+        .message-alert.error { background: #fee2e2; color: #991b1b; }
+        .message-alert.success { background: #dcfce7; color: #166534; }
+        
+        .form-group { margin-bottom: 1.25rem; }
+        .form-label { display: block; font-size: 0.875rem; font-weight: 600; color: #1e293b; margin-bottom: 0.5rem; }
+        .input-wrapper { display: flex; align-items: center; background: #f1f5f9; border: 2px solid transparent; border-radius: 0.75rem; padding: 0 1rem; transition: all 0.2s; }
+        .input-wrapper:focus-within { border-color: #4f46e5; background: white; box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); }
+        .input-wrapper.disabled { background: #f8fafc; opacity: 0.7; pointer-events: none; }
+        .input-wrapper svg { color: #64748b; margin-right: 0.75rem; }
+        .input-wrapper input { border: none; background: transparent; padding: 0.75rem 0; width: 100%; outline: none; color: #1e293b; font-size: 0.9375rem; }
+        
+        .auth-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.75rem; background: #4f46e5; color: white; padding: 0.875rem; border: none; border-radius: 0.75rem; font-weight: 700; cursor: pointer; transition: all 0.2s; margin-top: 1rem; }
+        .auth-btn:hover { background: #4338ca; transform: translateY(-1px); box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3); }
+        .auth-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+        .auth-btn.verify { background: #10b981; }
+        .auth-btn.verify:hover { background: #059669; box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3); }
+        
+        .auth-footer { margin-top: 2rem; text-align: center; font-size: 0.875rem; color: #64748b; }
+        .auth-footer a { color: #4f46e5; font-weight: 700; text-decoration: none; }
+        .auth-footer a:hover { text-decoration: underline; }
+        
+        .animate-spin { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      `}</style>
+    </div>
+  );
+};
+
+export default Register;

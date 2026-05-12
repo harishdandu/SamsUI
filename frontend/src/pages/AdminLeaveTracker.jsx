@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { leaveApi, staffApi } from '../utils/api';
+import { useAuth } from '../context/AuthContext';
 import { Check, X, Clock, Loader2, User, FileText, Calendar, Wallet } from 'lucide-react';
 
 const AdminLeaveTracker = () => {
+  const { user } = useAuth();
   const [leaves, setLeaves] = useState([]);
   const [staffList, setStaffList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,7 +24,7 @@ const AdminLeaveTracker = () => {
         // Only show pending leaves
         setLeaves(res.data.filter(l => l.status === 'Pending'));
       } else {
-        const res = await staffApi.getAll();
+        const res = await staffApi.getAll({ schoolId: user?.schoolId });
         setStaffList(res.data);
       }
     } catch (err) {

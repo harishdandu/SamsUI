@@ -76,7 +76,8 @@ const Login = () => {
         </form>
         
         <div className="login-footer">
-          <p>Sample Credentials: admin / admin123</p>
+          {/* <p style={{ marginBottom: '0.5rem' }}>Sample Credentials: admin / admin123</p> */}
+          <p>New School? <Link to="/register" style={{ color: 'var(--primary)', fontWeight: '700' }}>Register here</Link></p>
         </div>
       </div>
 

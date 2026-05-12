@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['Super Admin', 'School Admin', 'Teacher', 'Accountant', 'HR', 'Student', 'Parent'],
+    enum: ['Super Admin', 'Admin', 'School Admin', 'Teacher', 'Accountant', 'HR', 'Student', 'Parent'],
     default: 'Teacher'
   },
   staffId: {
@@ -28,6 +28,10 @@ const userSchema = new mongoose.Schema({
   studentId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Student'
+  },
+  schoolId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'SchoolProfile'
   },
   passwordOTP: String,
   passwordOTPExpires: Date

@@ -46,19 +46,24 @@ const studentSchema = new mongoose.Schema({
   documents: [{
     name: String,
     url: String
-  }]
+  }],
+  schoolId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'SchoolProfile',
+    required: true
+  }
 }, { timestamps: true });
 
-// Compound index to ensure roll numbers are unique WITHIN a class and section
-studentSchema.index({ class: 1, section: 1, rollNumber: 1 }, { unique: true });
+// Compound index to ensure roll numbers are unique WITHIN a school, class and section
+studentSchema.index({ schoolId: 1, class: 1, section: 1, rollNumber: 1 }, { unique: true });
 
 studentSchema.pre('validate', async function(next) {
   if (!this.isNew || this.rollNumber) return next();
 
   try {
-    // Find the student with the highest roll number in this class and section
+    // Find the student with the highest roll number in this school, class and section
     const lastStudent = await mongoose.model('Student').findOne(
-      { class: this.class, section: this.section },
+      { schoolId: this.schoolId, class: this.class, section: this.section },
       {},
       { sort: { rollNumber: -1 } }
     );

@@ -45,7 +45,7 @@ const Staff = () => {
   const fetchStaff = async () => {
     try {
       setLoading(true);
-      const response = await staffApi.getAll();
+      const response = await staffApi.getAll({ schoolId: user?.schoolId });
       setStaff(response.data);
       setError(null);
     } catch (err) {
@@ -177,11 +177,19 @@ const Staff = () => {
                           </button>
                           {actionMenuId === member._id && (
                             <div className="action-menu card">
-                              <button onClick={() => handleEditStaff(member)}><Edit size={16} /> Edit</button>
-                              <button onClick={() => handleOpenPayroll(member)}><Banknote size={16} /> Payroll</button>
-                              <button className="delete" onClick={() => handleDeleteStaff(member._id)}>
-                                <Trash2 size={16} /> Delete
-                              </button>
+                              {member._id !== user?.staffId ? (
+                                <>
+                                  <button onClick={() => handleEditStaff(member)}><Edit size={16} /> Edit</button>
+                                  {(isAdmin && new Date().getDate() >= 10) && (
+                                    <button onClick={() => handleOpenPayroll(member)}><Banknote size={16} /> Payroll</button>
+                                  )}
+                                  <button className="delete" onClick={() => handleDeleteStaff(member._id)}>
+                                    <Trash2 size={16} /> Delete
+                                  </button>
+                                </>
+                              ) : (
+                                <p style={{ padding: '0.5rem', fontSize: '0.75rem', color: 'var(--text-secondary)', margin: 0 }}>Self management restricted</p>
+                              )}
                             </div>
                           )}
                         </div>
@@ -227,13 +235,28 @@ const Staff = () => {
         .loading-state, .error-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4rem; gap: 1rem; }
         .animate-spin { animation: spin 1s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .table-container { overflow: visible; }
         .action-cell { position: relative; }
-        .action-menu { position: absolute; right: 0; top: 100%; width: 140px; padding: 0.5rem; z-index: 10; display: flex; flex-direction: column; gap: 0.25rem; }
-        .action-menu button { display: flex; align-items: center; gap: 0.5rem; width: 100%; padding: 0.5rem; border-radius: var(--radius); font-size: 0.875rem; color: var(--text-primary); transition: var(--transition); text-align: left; }
-        .action-menu button:hover { background: #f1f5f9; }
+        .action-menu {
+          position: absolute; 
+          right: 0; 
+          top: 100%; 
+          width: 160px; 
+          padding: 0.5rem; 
+          z-index: 100; 
+          display: flex; 
+          flex-direction: column; 
+          gap: 0.25rem;
+          margin-top: 0.5rem;
+          box-shadow: var(--shadow-xl);
+          background: white;
+          border: 1px solid var(--border);
+        }
+        .action-menu button { display: flex; align-items: center; gap: 0.5rem; width: 100%; padding: 0.625rem; border-radius: var(--radius); font-size: 0.875rem; color: var(--text-primary); transition: var(--transition); text-align: left; background: none; border: none; cursor: pointer; }
+        .action-menu button:hover { background: #f1f5f9; color: var(--primary); }
         .action-menu button.delete { color: var(--danger); }
         .action-menu button.delete:hover { background: #fef2f2; }
-        .btn-icon { padding: 0.5rem; border-radius: var(--radius); transition: var(--transition); }
+        .btn-icon { padding: 0.5rem; border-radius: var(--radius); transition: var(--transition); background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .btn-icon:hover { background: #f1f5f9; }
       `}</style>
     </div>
