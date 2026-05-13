@@ -27,8 +27,8 @@ const ProtectedRoute = ({ children }) => {
   if (loading) return null;
   if (!token) return <Navigate to="/login" />;
 
-  // If school profile is not completed, redirect Admin to profile page
-  if (user?.role === 'Admin' && !user?.isProfileCompleted && window.location.pathname !== '/school-profile') {
+  // If school profile is not completed, redirect Admin/Super Admin to profile page
+  if ((user?.role === 'Admin' || user?.role === 'Super Admin') && !user?.isProfileCompleted && window.location.pathname !== '/school-profile') {
     return <Navigate to="/school-profile" />;
   }
 

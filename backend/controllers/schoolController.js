@@ -97,12 +97,12 @@ export const verifySchoolOTP = async (req, res) => {
     school.otpExpires = undefined;
     await school.save();
 
-    // 1. Create the Staff record for the Admin
+    // 1. Create the Staff record for the Super Admin
     const staffMember = await Staff.create({
       firstName: 'School',
       lastName: 'Admin',
       email: email,
-      role: 'Admin',
+      role: 'Super Admin',
       schoolId: school._id,
       status: 'Active'
     });
@@ -114,14 +114,14 @@ export const verifySchoolOTP = async (req, res) => {
       username,
       email,
       password: password || school.password,
-      role: 'Admin',
+      role: 'Super Admin',
       schoolId: school._id,
       staffId: staffMember._id // Link to the staff record
     });
 
     res.status(200).json({ 
       status: 'success', 
-      message: 'School registered, Admin user and Staff profile created successfully!' 
+      message: 'School registered, Super Admin user and Staff profile created successfully!' 
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

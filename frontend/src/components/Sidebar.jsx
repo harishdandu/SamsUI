@@ -30,23 +30,23 @@ const Sidebar = () => {
     { name: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/' },
     { name: 'Students', icon: <Users size={20} />, path: '/students' },
     { name: 'Staff', icon: <Users size={20} />, path: '/staff' },
-    { name: 'Staff Payroll', icon: <CalendarCheck size={20} />, path: '/staff-payroll', roles: ['admin'], visibleAfter: 25 },
-    { name: 'Attendance', icon: <CalendarCheck size={20} />, path: '/attendance', roles: ['admin', 'teacher'] },
-    { name: 'Fees', icon: <CreditCard size={20} />, path: '/fees', roles: ['admin','hr','accountant'] },
-    { name: 'Pending Fees', icon: <Clock size={20} />, path: '/pending-fees', roles: ['admin','hr','accountant'] },
-    { name: 'Ledgers', icon: <BookOpen size={20} />, path: '/ledger', roles: ['admin','hr','accountant'] },
-    { name: 'Subjects', icon: <Book size={20} />, path: '/subjects', roles: ['admin'] },
-    { name: 'Classes', icon: <Layers size={20} />, path: '/classes', roles: ['admin'] },
+    { name: 'Staff Payroll', icon: <CalendarCheck size={20} />, path: '/staff-payroll', roles: ['super admin', 'admin'], visibleAfter: 25 },
+    { name: 'Attendance', icon: <CalendarCheck size={20} />, path: '/attendance', roles: ['super admin', 'admin', 'teacher'] },
+    { name: 'Fees', icon: <CreditCard size={20} />, path: '/fees', roles: ['super admin', 'admin','hr','accountant'] },
+    { name: 'Pending Fees', icon: <Clock size={20} />, path: '/pending-fees', roles: ['super admin', 'admin','hr','accountant'] },
+    { name: 'Ledgers', icon: <BookOpen size={20} />, path: '/ledger', roles: ['super admin', 'admin','hr','accountant'] },
+    { name: 'Subjects', icon: <Book size={20} />, path: '/subjects', roles: ['super admin', 'admin'] },
+    { name: 'Classes', icon: <Layers size={20} />, path: '/classes', roles: ['super admin', 'admin'] },
     { name: 'AI Test Gen', icon: <Sparkles size={20} />, path: '/test-gen' },
     { name: 'Accounting', icon: <BarChart3 size={20} />, path: '/accounting' },
     { name: 'Leave Tracker', icon: <CalendarCheck size={20} />, path: '/leave-tracker', roles: ['hr', 'teacher', 'accountant'] },
-    { name: 'Track Leaves', icon: <CalendarCheck size={20} />, path: '/admin/leaves', roles: ['admin', 'hr'] },
-    { name: 'Profile', icon: <Users size={20} />, path: '/school-profile', roles: ['admin'] },
+    { name: 'Track Leaves', icon: <CalendarCheck size={20} />, path: '/admin/leaves', roles: ['super admin', 'admin', 'hr'] },
+    { name: 'Profile', icon: <Users size={20} />, path: '/school-profile', roles: ['super admin', 'admin'] },
   ];
 
   const filteredItems = menuItems.filter(item => {
-    // If school profile is not completed, only show the Profile page for Admin
-    if (user?.role === 'Admin' && !user?.isProfileCompleted) {
+    // If school profile is not completed, only show the Profile page for Admin/Super Admin
+    if ((user?.role === 'Admin' || user?.role === 'Super Admin') && !user?.isProfileCompleted) {
       return item.name === 'Profile';
     }
 
@@ -90,7 +90,7 @@ const Sidebar = () => {
             <p className="user-role">{user?.role}</p>
           </div>
         </div>
-        {! (user?.role === 'Admin' && !user?.isProfileCompleted) && (
+        {! ((user?.role === 'Admin' || user?.role === 'Super Admin') && !user?.isProfileCompleted) && (
           <NavLink to="/change-password" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
             <Lock size={20} />
             <span>Change Password</span>
