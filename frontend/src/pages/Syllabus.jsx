@@ -158,8 +158,8 @@ const Syllabus = () => {
     e.preventDefault();
     if (!file || !selectedClass) return;
 
-    if (file.size > 10 * 1024 * 1024) {
-      alert("File size exceeds the 10MB limit. Please upload a smaller file.");
+    if (file.size > 12 * 1024 * 1024) {
+      alert("File size exceeds the 12MB limit. Please upload a smaller file.");
       return;
     }
 
@@ -337,8 +337,8 @@ const Syllabus = () => {
                       accept="application/pdf"
                       onChange={(e) => {
                         const selectedFile = e.target.files[0];
-                        if (selectedFile && selectedFile.size > 10 * 1024 * 1024) {
-                          alert("File size exceeds the 10MB limit. Please select a smaller file.");
+                        if (selectedFile && selectedFile.size > 12 * 1024 * 1024) {
+                          alert("File size exceeds the 12MB limit. Please select a smaller file.");
                           e.target.value = null; // reset input
                           setFile(null);
                           return;

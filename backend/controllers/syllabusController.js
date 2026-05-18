@@ -377,7 +377,69 @@ export const uploadSyllabus = async (req, res) => {
           ]
         }
       ];
-    } else if (req.file.originalname && (req.file.originalname.includes("9th Eng Science") || req.file.originalname.includes("Science P&C") || req.file.originalname.includes("Science"))) {
+    } else if (req.file.originalname && (req.file.originalname.includes("10th Eng Science") || (req.file.originalname.includes("10th") && req.file.originalname.includes("Science")))) {
+      isDemoFile = true;
+      chapters = [
+        {
+          name: "1. Chemical Reactions and Equations",
+          subtopics: [
+            { name: "1.1 Chemical Equations" },
+            { name: "1.2 Types of Chemical Reactions" },
+            { name: "1.3 Oxidation and Reduction Reactions" }
+          ]
+        },
+        {
+          name: "2. Acids, Bases and Salts",
+          subtopics: [
+            { name: "2.1 Understanding the Chemical Properties of Acids and Bases" },
+            { name: "2.2 What do all Acids and all Bases have in common?" },
+            { name: "2.3 How Strong are Acid or Base Solutions?" },
+            { name: "2.4 More about Salts" }
+          ]
+        },
+        {
+          name: "3. Life Processes",
+          subtopics: [
+            { name: "3.1 What are Life Processes?" },
+            { name: "3.2 Nutrition" },
+            { name: "3.3 Respiration" },
+            { name: "3.4 Transportation" },
+            { name: "3.5 Excretion" }
+          ]
+        },
+        {
+          name: "4. Control and Coordination",
+          subtopics: [
+            { name: "4.1 Animals – Nervous System" },
+            { name: "4.2 Coordination in Plants" },
+            { name: "4.3 Hormones in Animals" }
+          ]
+        },
+        {
+          name: "5. Electricity",
+          subtopics: [
+            { name: "5.1 Electric Current and Circuit" },
+            { name: "5.2 Electric Potential and Potential Difference" },
+            { name: "5.3 Circuit Diagram" },
+            { name: "5.4 Ohm’s Law" },
+            { name: "5.5 Factors on which the Resistance of a Conductor depends" },
+            { name: "5.6 Resistance of a System of Resistors" },
+            { name: "5.7 Heating Effect of Electric Current" },
+            { name: "5.8 Electric Power" }
+          ]
+        },
+        {
+          name: "6. Magnetic Effects of Electric Current",
+          subtopics: [
+            { name: "6.1 Magnetic Field and Field Lines" },
+            { name: "6.2 Magnetic Field due to a Current-Carrying Conductor" },
+            { name: "6.3 Force on a Current-Carrying Conductor in a Magnetic Field" },
+            { name: "6.4 Electromagnetic Induction" },
+            { name: "6.5 Domestic Electric Circuits" }
+          ]
+        }
+      ];
+    } else if (req.file.originalname && (req.file.originalname.includes("9th Eng Science") || (req.file.originalname.includes("9th") && req.file.originalname.includes("Science")))) {
       isDemoFile = true;
       chapters = [
         {

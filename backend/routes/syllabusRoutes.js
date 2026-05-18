@@ -9,7 +9,7 @@ const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  limits: { fileSize: 12 * 1024 * 1024 }, // 12MB limit
   fileFilter: (req, file, cb) => {
     const allowedMimeTypes = [
       'application/pdf',
@@ -33,7 +33,7 @@ router.post('/upload', (req, res, next) => {
   upload.single('pdf')(req, res, (err) => {
     if (err) {
       if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
-        return res.status(400).json({ message: 'File size exceeds the 10MB limit.' });
+        return res.status(400).json({ message: 'File size exceeds the 12MB limit.' });
       }
       return res.status(400).json({ message: err.message });
     }
