@@ -115,6 +115,8 @@ const Attendance = () => {
     }
   };
 
+  const isTeacher = user?.role?.toLowerCase() === 'teacher';
+
   return (
     <div className="attendance-page">
       <header className="page-header">
@@ -123,10 +125,12 @@ const Attendance = () => {
           <p>Mark and track daily student attendance.</p>
         </div>
         <div className="header-actions">
-           <button className="btn btn-primary" onClick={handleSave} disabled={saving || students.length === 0}>
-            {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-            Save Attendance
-          </button>
+          {isTeacher && (
+            <button className="btn btn-primary" onClick={handleSave} disabled={saving || students.length === 0}>
+              {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+              Save Attendance
+            </button>
+          )}
         </div>
       </header>
 
@@ -167,7 +171,7 @@ const Attendance = () => {
       {!loading && students.length > 0 && !attendanceExists && (
         <div className="info-banner">
           <Calendar size={18} />
-          <span>Attendance hasn't been marked for this date yet. You can mark and save it below.</span>
+          <span>{isTeacher ? "Attendance hasn't been marked for this date yet. You can mark and save it below." : "Attendance hasn't been marked for this date yet."}</span>
         </div>
       )}
 
@@ -199,6 +203,7 @@ const Attendance = () => {
                       name={`attendance-${student._id}`} 
                       checked={attendanceData[student._id] === 'Present'}
                       onChange={() => handleStatusChange(student._id, 'Present')}
+                      disabled={!isTeacher}
                     />
                   </td>
                   <td className="center">
@@ -207,6 +212,7 @@ const Attendance = () => {
                       name={`attendance-${student._id}`} 
                       checked={attendanceData[student._id] === 'Absent'}
                       onChange={() => handleStatusChange(student._id, 'Absent')}
+                      disabled={!isTeacher}
                     />
                   </td>
                   <td className="center">
@@ -215,6 +221,7 @@ const Attendance = () => {
                       name={`attendance-${student._id}`} 
                       checked={attendanceData[student._id] === 'Late'}
                       onChange={() => handleStatusChange(student._id, 'Late')}
+                      disabled={!isTeacher}
                     />
                   </td>
                 </tr>

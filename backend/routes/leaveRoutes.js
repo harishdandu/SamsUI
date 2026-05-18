@@ -8,8 +8,8 @@ router.use(protect);
 
 router.post('/apply', applyLeave);
 router.get('/my-leaves', getMyLeaves);
-router.get('/all', restrictTo('admin'), getAllLeaves);
-router.get('/staff-month', restrictTo('admin'), getStaffLeavesByMonth);
-router.put('/:id/status', restrictTo('admin'), updateLeaveStatus);
+router.get('/all', restrictTo('Super Admin', 'Admin'), getAllLeaves);
+router.get('/staff-month', restrictTo('Super Admin', 'Admin'), getStaffLeavesByMonth);
+router.put('/:id/status', restrictTo('Super Admin', 'Admin'), updateLeaveStatus);
 
 export default router;

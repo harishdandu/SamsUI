@@ -1,4 +1,5 @@
 import Subject from '../models/Subject.js';
+import Class from '../models/Class.js';
 
 export const getAllSubjects = async (req, res) => {
   try {
@@ -6,8 +7,23 @@ export const getAllSubjects = async (req, res) => {
     if (!schoolId) {
       return res.status(400).json({ message: 'School ID is required' });
     }
+    
     const subjects = await Subject.find({ schoolId }).sort({ name: 1 });
-    res.status(200).json(subjects);
+    const classes = await Class.find({ schoolId });
+
+    const subjectsWithClasses = subjects.map(subject => {
+      // Find all classes that have this subject name in their subjects array
+      const assignedClasses = classes
+        .filter(cls => cls.subjects && cls.subjects.includes(subject.name))
+        .map(cls => cls.name);
+      
+      return {
+        ...subject.toObject(),
+        classes: assignedClasses
+      };
+    });
+
+    res.status(200).json(subjectsWithClasses);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -87,15 +87,6 @@ const SubjectModal = ({ isOpen, onClose, onSave, subject = null }) => {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Subject Code (Optional)</label>
-            <input 
-              type="text" name="code" className="form-input" 
-              value={formData.code} onChange={handleChange} 
-              placeholder="e.g. MATH101"
-            />
-          </div>
-
-          <div className="form-group">
             <div className="label-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
               <label className="form-label" style={{ marginBottom: 0 }}>Select Classes (1-10)</label>
               <button 
@@ -119,14 +110,6 @@ const SubjectModal = ({ isOpen, onClose, onSave, subject = null }) => {
                 </button>
               ))}
             </div>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Description</label>
-            <textarea 
-              name="description" className="form-input" rows="3"
-              value={formData.description} onChange={handleChange}
-            ></textarea>
           </div>
 
           <div className="modal-footer">

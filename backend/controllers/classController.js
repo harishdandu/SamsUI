@@ -9,7 +9,6 @@ export const getAllClasses = async (req, res) => {
     }
 
     const classes = await Class.find({ schoolId })
-      .populate('subjects')
       .sort({ name: 1 });
       
     res.status(200).json(classes);
@@ -46,7 +45,7 @@ export const upsertClass = async (req, res) => {
     }
 
     // Populate and return
-    const populatedClass = await Class.findById(classObj._id).populate('subjects');
+    const populatedClass = await Class.findById(classObj._id);
     res.status(200).json(populatedClass);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -63,6 +62,9 @@ export const bulkUpsertClasses = async (req, res) => {
     }
 
     const results = [];
+    const allSubjectNames = new Set();
+    const subjectToClassesMap = {};
+
     for (const config of configs) {
       const { name, sections, subjects } = config;
       
@@ -70,10 +72,49 @@ export const bulkUpsertClasses = async (req, res) => {
         { name, schoolId },
         { sections, subjects, schoolId },
         { upsert: true, new: true, setDefaultsOnInsert: true }
-      ).populate('subjects');
+      );
       
       results.push(updatedClass);
+
+      // Collect subject data for syncing
+      if (subjects && Array.isArray(subjects)) {
+        subjects.forEach(subName => {
+          allSubjectNames.add(subName);
+          if (!subjectToClassesMap[subName]) {
+            subjectToClassesMap[subName] = [];
+          }
+          subjectToClassesMap[subName].push(name);
+        });
+      }
     }
+
+    // Sync with Subject collection
+    // 1. Get all existing subjects for this school
+    const existingSubjects = await Subject.find({ schoolId });
+    const existingNames = existingSubjects.map(s => s.name);
+
+    // 2. Update existing and create new subjects
+    for (const subName of allSubjectNames) {
+      await Subject.findOneAndUpdate(
+        { name: subName, schoolId },
+        { 
+          name: subName, 
+          classes: subjectToClassesMap[subName],
+          schoolId 
+        },
+        { upsert: true, new: true }
+      );
+    }
+
+    // 3. Cleanup: For subjects that exist in DB but are not in this update, 
+    // clear their classes array (since this bulk update represents the full institutional structure)
+    await Subject.updateMany(
+      { 
+        schoolId, 
+        name: { $nin: Array.from(allSubjectNames) } 
+      },
+      { $set: { classes: [] } }
+    );
 
     res.status(200).json(results);
   } catch (error) {

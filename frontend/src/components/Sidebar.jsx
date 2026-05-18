@@ -28,20 +28,21 @@ const Sidebar = () => {
 
   const menuItems = [
     { name: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/' },
-    { name: 'Students', icon: <Users size={20} />, path: '/students' },
-    { name: 'Staff', icon: <Users size={20} />, path: '/staff' },
-    { name: 'Staff Payroll', icon: <CalendarCheck size={20} />, path: '/staff-payroll', roles: ['super admin', 'admin'], visibleAfter: 25 },
-    { name: 'Attendance', icon: <CalendarCheck size={20} />, path: '/attendance', roles: ['super admin', 'admin', 'teacher'] },
-    { name: 'Fees', icon: <CreditCard size={20} />, path: '/fees', roles: ['super admin', 'admin','hr','accountant'] },
-    { name: 'Pending Fees', icon: <Clock size={20} />, path: '/pending-fees', roles: ['super admin', 'admin','hr','accountant'] },
-    { name: 'Ledgers', icon: <BookOpen size={20} />, path: '/ledger', roles: ['super admin', 'admin','hr','accountant'] },
+    { name: 'Students', icon: <Users size={20} />, path: '/students', roles: [ 'admin', 'teacher'] },
+    { name: 'Staff', icon: <Users size={20} />, path: '/staff', roles: ['super admin', 'admin', 'hr'] },
+    { name: 'Staff Payroll', icon: <CalendarCheck size={20} />, path: '/staff-payroll', roles: ['super admin', 'admin', 'accountant'], visibleAfter: 25 },
+    { name: 'Attendance', icon: <CalendarCheck size={20} />, path: '/attendance', roles: ['admin', 'teacher'] },
+    { name: 'Fees', icon: <CreditCard size={20} />, path: '/fees', roles: ['admin','accountant'] },
+    { name: 'Pending Fees', icon: <Clock size={20} />, path: '/pending-fees', roles: ['admin','accountant'] },
+    { name: 'Ledgers', icon: <BookOpen size={20} />, path: '/ledger', roles: ['admin','accountant'] },
     { name: 'Subjects', icon: <Book size={20} />, path: '/subjects', roles: ['super admin', 'admin'] },
     { name: 'Classes', icon: <Layers size={20} />, path: '/classes', roles: ['super admin', 'admin'] },
-    { name: 'AI Test Gen', icon: <Sparkles size={20} />, path: '/test-gen' },
-    { name: 'Accounting', icon: <BarChart3 size={20} />, path: '/accounting' },
-    { name: 'Leave Tracker', icon: <CalendarCheck size={20} />, path: '/leave-tracker', roles: ['hr', 'teacher', 'accountant'] },
+    { name: 'Syllabus', icon: <BookOpen size={20} />, path: '/syllabus', roles: ['teacher'] },
+    { name: 'AI Test Gen', icon: <Sparkles size={20} />, path: '/test-gen', roles: ['teacher', 'admin'] },
+    { name: 'Accounting', icon: <BarChart3 size={20} />, path: '/accounting', roles: ['admin', 'accountant'] },
+    { name: 'Leave Tracker', icon: <CalendarCheck size={20} />, path: '/leave-tracker', roles: ['hr', 'teacher', 'accountant', 'admin'] },
     { name: 'Track Leaves', icon: <CalendarCheck size={20} />, path: '/admin/leaves', roles: ['super admin', 'admin', 'hr'] },
-    { name: 'Profile', icon: <Users size={20} />, path: '/school-profile', roles: ['super admin', 'admin'] },
+    { name: 'Profile', icon: <Users size={20} />, path: '/school-profile', roles: ['super admin',] },
   ];
 
   const filteredItems = menuItems.filter(item => {

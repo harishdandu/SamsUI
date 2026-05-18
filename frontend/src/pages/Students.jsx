@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Search, UserPlus, MoreVertical, Filter, Loader2, Edit, Trash2 } from 'lucide-react';
+import { Search, UserPlus, MoreVertical, Filter, Loader2, Edit, Trash2, Upload } from 'lucide-react';
 import { studentApi } from '../utils/api';
 import StudentModal from '../components/StudentModal';
+import BulkUploadModal from '../components/BulkUploadModal';
 import { useAuth } from '../context/AuthContext';
 
 const Students = () => {
@@ -11,6 +12,7 @@ const Students = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [actionMenuId, setActionMenuId] = useState(null);
   
@@ -73,6 +75,17 @@ const Students = () => {
     }
   };
 
+  const handleBulkUpload = async (studentsData) => {
+    if (!isAdmin) return;
+    try {
+      await studentApi.bulkRegister(studentsData);
+      await fetchStudents(1); // Refresh list
+    } catch (err) {
+      console.error('Error during bulk upload:', err);
+      throw err;
+    }
+  };
+
   const handleDeleteStudent = async (id) => {
     if (!isAdmin) return;
     if (window.confirm('Are you sure you want to delete this student?')) {
@@ -106,10 +119,16 @@ const Students = () => {
           <p>Manage your student lifecycle and records. Total: {totalStudents}</p>
         </div>
         {isAdmin && (
-          <button className="btn btn-primary" onClick={openAddModal}>
-            <UserPlus size={18} />
-            Add Student
-          </button>
+          <div className="header-actions">
+            <button className="btn btn-secondary" onClick={() => setIsBulkModalOpen(true)}>
+              <Upload size={18} />
+              Bulk Register
+            </button>
+            <button className="btn btn-primary" onClick={openAddModal}>
+              <UserPlus size={18} />
+              Add Student
+            </button>
+          </div>
         )}
       </header>
 
@@ -238,12 +257,22 @@ const Students = () => {
         student={selectedStudent}
       />
 
+      <BulkUploadModal 
+        isOpen={isBulkModalOpen}
+        onClose={() => setIsBulkModalOpen(false)}
+        onUploadComplete={handleBulkUpload}
+      />
+
       <style>{`
         .page-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
           margin-bottom: 2rem;
+        }
+        .header-actions {
+          display: flex;
+          gap: 1rem;
         }
         .header-left h1 { font-size: 1.875rem; font-weight: 700; margin-bottom: 0.5rem; }
         .header-left p { color: var(--text-secondary); }

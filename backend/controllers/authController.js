@@ -71,6 +71,10 @@ export const login = async (req, res) => {
           schoolRegistrationNumber: user.schoolId?.registrationNumber,
           isProfileCompleted: user.schoolId?.isProfileCompleted,
           assignedClasses, // Include assigned classes for frontend filtering
+          assignedSubjects: user.staffId?.teachingSubjects ? user.staffId.teachingSubjects.map(ts => ({
+            id: ts.subjectId?._id || ts.subjectId,
+            name: ts.subjectId?.name || ''
+          })) : [],
           leaveBalance: user.staffId ? {
             casual: user.staffId.casualLeaves,
             totalCasual: user.staffId.totalCasualLeaves,
@@ -97,6 +101,9 @@ export const requestPasswordOTP = async (req, res) => {
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    console.log(`\n=== OTP GENERATED [requestPasswordOTP] for ${user.email} ===`);
+    console.log(`OTP: ${otp}`);
+    console.log(`=========================================================\n`);
     user.passwordOTP = await bcrypt.hash(otp, 12);
     user.passwordOTPExpires = Date.now() + 10 * 60 * 1000;
     await user.save({ validateBeforeSave: false });
@@ -147,6 +154,9 @@ export const forgotPassword = async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: 'No user found with that email' });
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    console.log(`\n=== OTP GENERATED [forgotPassword] for ${email} ===`);
+    console.log(`OTP: ${otp}`);
+    console.log(`=========================================================\n`);
     user.passwordOTP = await bcrypt.hash(otp, 12);
     user.passwordOTPExpires = Date.now() + 10 * 60 * 1000;
     await user.save({ validateBeforeSave: false });

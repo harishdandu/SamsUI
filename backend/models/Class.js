@@ -10,8 +10,7 @@ const classSchema = new mongoose.Schema({
     default: ['A'] 
   }], // e.g. ["A", "B", "C"]
   subjects: [{ 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'Subject' 
+    type: String
   }],
   schoolId: { 
     type: mongoose.Schema.Types.ObjectId, 

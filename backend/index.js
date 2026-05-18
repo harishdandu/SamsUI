@@ -12,7 +12,8 @@ dotenv.config();
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Import routes
 import studentRoutes from './routes/studentRoutes.js';
@@ -30,6 +31,7 @@ import leaveRoutes from './routes/leaveRoutes.js';
 import payrollRoutes from './routes/payrollRoutes.js';
 import schoolRoutes from './routes/schoolRoutes.js';
 import classRoutes from './routes/classRoutes.js';
+import syllabusRoutes from './routes/syllabusRoutes.js';
 
 app.use('/api/students', studentRoutes);
 app.use('/api/attendance', attendanceRoutes);
@@ -46,6 +48,7 @@ app.use('/api/leaves', leaveRoutes);
 app.use('/api/payroll', payrollRoutes);
 app.use('/api/schools', schoolRoutes);
 app.use('/api/classes', classRoutes);
+app.use('/api/syllabus', syllabusRoutes);
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.get('*', (req, res) => {

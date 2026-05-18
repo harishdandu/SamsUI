@@ -223,6 +223,98 @@ export const createStudent = async (req, res) => {
   }
 };
 
+export const bulkRegister = async (req, res) => {
+  const studentsData = req.body; // Array of student objects
+  
+  if (!Array.isArray(studentsData)) {
+    return res.status(400).json({ message: 'Data must be an array of students.' });
+  }
+
+  try {
+    const schoolId = req.user.schoolId;
+    const results = [];
+
+    for (const studentData of studentsData) {
+      const newStudent = new Student({ ...studentData, schoolId });
+      await newStudent.save();
+
+      // Generate installments (Logic from createStudent fallback)
+      const totalFees = studentData.fees?.amount || 0;
+      const frequency = studentData.fees?.feeFrequency || 'Quarterly';
+      const startDate = new Date(studentData.fees?.tuitionStartDate || new Date());
+      
+      let installmentCount = 0;
+      let intervalMonths = 0;
+
+      switch (frequency) {
+        case 'Monthly': installmentCount = 10; intervalMonths = 1; break;
+        case 'Quarterly': installmentCount = 4; intervalMonths = 3; break;
+        case 'Half Yearly': installmentCount = 2; intervalMonths = 6; break;
+        default: installmentCount = 1; intervalMonths = 0;
+      }
+
+      const installmentAmount = totalFees / installmentCount;
+      const firstPaidAmount = studentData.fees?.firstInstallmentAmount || 0;
+      const generatedInstallments = [];
+
+      for (let i = 0; i < installmentCount; i++) {
+        const dueDate = new Date(startDate);
+        dueDate.setMonth(startDate.getMonth() + (i * intervalMonths));
+
+        const isFirst = i === 0;
+        const paid = isFirst ? firstPaidAmount : 0;
+        
+        let status = 'Pending';
+        if (isFirst) {
+          status = firstPaidAmount >= installmentAmount ? 'Paid' : 'Partial';
+        }
+
+        generatedInstallments.push({
+          studentId: newStudent._id,
+          installmentNumber: i + 1,
+          installmentAmount: installmentAmount,
+          paidAmount: paid,
+          installmentDueDate: dueDate,
+          paymentStatus: status,
+          paymentDate: isFirst ? new Date() : null,
+          paymentMethod: isFirst ? (studentData.paymentMethod || 'CASH') : null
+        });
+      }
+      const savedInstallments = await StudentFeeInstallment.insertMany(generatedInstallments);
+
+      // Create Ledger entries for initial payments
+      const ledgerEntries = savedInstallments
+        .filter(inst => inst.paidAmount > 0)
+        .map(inst => ({
+          studentId: newStudent._id,
+          installmentId: inst._id,
+          installmentNumber: inst.installmentNumber,
+          amount: inst.paidAmount,
+          date: new Date(),
+          paymentMethod: inst.paymentMethod || 'CASH',
+          installmentDueDate: inst.installmentDueDate,
+          transactionType: 'Income',
+          category: 'Student Fee',
+          description: `Bulk Registration Initial Payment - Installment #${inst.installmentNumber}`
+        }));
+      
+      if (ledgerEntries.length > 0) {
+        await Ledger.insertMany(ledgerEntries);
+      }
+
+      results.push(newStudent);
+    }
+
+    res.status(201).json({ 
+      message: `${results.length} students registered successfully.`,
+      students: results 
+    });
+  } catch (error) {
+    console.error('Bulk registration error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 export const updateStudent = async (req, res) => {
   const { id } = req.params;
   const student = req.body;

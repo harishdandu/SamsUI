@@ -18,7 +18,7 @@ export const getAllStaff = async (req, res) => {
 
 export const getStaffById = async (req, res) => {
   try {
-    const staff = await Staff.findById(req.params.id);
+    const staff = await Staff.findById(req.params.id).populate('teachingSubjects.subjectId');
     if (!staff) return res.status(404).json({ message: 'Staff member not found' });
     res.status(200).json(staff);
   } catch (error) {
@@ -55,6 +55,11 @@ export const createStaff = async (req, res) => {
 
     // 3. Generate a random temporary password
     const tempPassword = crypto.randomBytes(4).toString('hex'); 
+    
+    console.log(`\n=== CREDENTIALS GENERATED [Single Staff] ===`);
+    console.log(`Email: ${newStaff.email}`);
+    console.log(`Password: ${tempPassword}`);
+    console.log(`============================================\n`);
 
     // 4. Create the User record
     await User.create({
@@ -95,6 +100,92 @@ export const createStaff = async (req, res) => {
     });
   } catch (error) {
     res.status(409).json({ message: error.message });
+  }
+};
+
+export const bulkRegisterStaff = async (req, res) => {
+  const staffsData = req.body;
+  const schoolId = req.user.schoolId;
+
+  if (!Array.isArray(staffsData)) {
+    return res.status(400).json({ message: 'Data must be an array of staff.' });
+  }
+
+  try {
+    const results = [];
+    
+    for (const staffData of staffsData) {
+      // 0. Check for existing email
+      const existingStaff = await Staff.findOne({ email: staffData.email });
+      const existingUser = await User.findOne({ email: staffData.email });
+      if (existingStaff || existingUser) {
+        console.log(`Skipping existing email: ${staffData.email}`);
+        continue;
+      }
+
+      // 1. Handle Teacher role defaults
+      const finalStaffData = { ...staffData, schoolId };
+      if (staffData.role?.toLowerCase() === 'teacher') {
+        if (!finalStaffData.teachingSubjects) finalStaffData.teachingSubjects = [];
+      }
+
+      const newStaff = new Staff(finalStaffData);
+      
+      // Initialize leave fields
+      newStaff.totalCasualLeaves = newStaff.casualLeaves || 0;
+      newStaff.totalSickLeaves = newStaff.sickLeaves || 0;
+      newStaff.totalOtherLeaves = newStaff.otherLeaves || 0;
+      newStaff.totalUnpaidLeaves = newStaff.unpaidLeaves || 0;
+
+      await newStaff.save();
+
+      // 2. Generate temporary password and create user
+      const tempPassword = crypto.randomBytes(4).toString('hex'); 
+      
+      console.log(`\n=== CREDENTIALS GENERATED [Bulk Staff] ===`);
+      console.log(`Email: ${newStaff.email}`);
+      console.log(`Password: ${tempPassword}`);
+      console.log(`==========================================\n`);
+      await User.create({
+        username: newStaff.email,
+        email: newStaff.email,
+        password: tempPassword,
+        role: newStaff.role,
+        staffId: newStaff._id,
+        schoolId: schoolId
+      });
+
+      // 3. Send onboarding email
+      try {
+        await sendEmail({
+          email: newStaff.email,
+          subject: 'Welcome to SAMS Elite - Your Staff Account',
+          html: `
+            <div style="font-family: sans-serif; padding: 20px; color: #333;">
+              <h2 style="color: #6366f1;">Welcome to the Team, ${newStaff.firstName}!</h2>
+              <p>Your staff account for SAMS Elite has been created via bulk registration. You can log in using the credentials below:</p>
+              <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <p style="margin: 5px 0;"><strong>Username:</strong> ${newStaff.email}</p>
+                <p style="margin: 5px 0;"><strong>Temporary Password:</strong> ${tempPassword}</p>
+              </div>
+              <p>For security, please update your password after your first login.</p>
+              <p>Best Regards,<br/>SAMS Administration</p>
+            </div>
+          `
+        });
+      } catch (emailError) {
+        console.error(`Error sending email to ${newStaff.email}:`, emailError);
+      }
+
+      results.push(newStaff);
+    }
+
+    res.status(201).json({
+      message: `${results.length} staff members registered successfully. Welcome emails sent.`,
+      staffCount: results.length
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 

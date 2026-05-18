@@ -26,6 +26,7 @@ export const studentApi = {
   create: (data) => api.post('/students', data),
   update: (id, data) => api.put(`/students/${id}`, data),
   delete: (id) => api.delete(`/students/${id}`),
+  bulkRegister: (data) => api.post('/students/bulk', data),
 };
 
 export const attendanceApi = {
@@ -47,6 +48,7 @@ export const staffApi = {
   create: (data) => api.post('/staff', data),
   update: (id, data) => api.put(`/staff/${id}`, data),
   delete: (id) => api.delete(`/staff/${id}`),
+  bulkRegister: (data) => api.post('/staff/bulk', data),
 };
 
 export const statsApi = {
@@ -95,5 +97,14 @@ export const classApi = {
   delete: (id) => api.delete(`/classes/${id}`),
 };
 
+export const syllabusApi = {
+  upload: (data) => api.post('/syllabus/upload', data, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+  create: (data) => api.post('/syllabus', data),
+  getByClass: (classId, params) => api.get(`/syllabus/${classId}`, { params }),
+  update: (id, data) => api.put(`/syllabus/${id}`, data),
+  getMySyllabuses: () => api.get('/syllabus/my-syllabuses'),
+};
 
 export default api;

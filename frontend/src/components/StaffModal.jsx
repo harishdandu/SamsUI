@@ -10,8 +10,9 @@ const StaffModal = ({ isOpen, onClose, onSave, staffMember = null }) => {
     employeeId: '',
     role: 'Teacher',
     designation: '',
+    gender: '',
     email: '',
-    phoneNumber: '',
+    phone: '',
     status: 'Active',
     salary: 0,
     joiningDate: new Date().toISOString().split('T')[0],
@@ -43,6 +44,7 @@ const StaffModal = ({ isOpen, onClose, onSave, staffMember = null }) => {
     if (staffMember) {
       setFormData({
         ...staffMember,
+        salary: staffMember.salary?.base || 0,
         joiningDate: staffMember.joiningDate ? new Date(staffMember.joiningDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
         teachingSubjects: (staffMember.teachingSubjects && staffMember.teachingSubjects.length > 0) 
           ? staffMember.teachingSubjects 
@@ -55,8 +57,9 @@ const StaffModal = ({ isOpen, onClose, onSave, staffMember = null }) => {
         employeeId: '',
         role: 'Teacher',
         designation: '',
+        gender: '',
         email: '',
-        phoneNumber: '',
+        phone: '',
         status: 'Active',
         salary: 0,
         joiningDate: new Date().toISOString().split('T')[0],
@@ -115,6 +118,7 @@ const StaffModal = ({ isOpen, onClose, onSave, staffMember = null }) => {
       const dataToSave = {
         ...formData,
         schoolId: user?.schoolId,
+        salary: { base: Number(formData.salary || 0) },
         teachingSubjects: cleanedTeachingSubjects
       };
       await onSave(dataToSave);
@@ -158,8 +162,7 @@ const StaffModal = ({ isOpen, onClose, onSave, staffMember = null }) => {
             <div className="form-group">
               <label className="form-label">Role</label>
               <select name="role" className="form-input" value={formData.role} onChange={handleChange}>
-                <option value="Super Admin">Super Admin</option>
-                <option value="School Admin">School Admin</option>
+                <option value="Admin">Admin</option>
                 <option value="Teacher">Teacher</option>
                 <option value="Accountant">Accountant</option>
                 <option value="HR">HR</option>
@@ -200,13 +203,31 @@ const StaffModal = ({ isOpen, onClose, onSave, staffMember = null }) => {
               </div>
             </div>
           )}
-
           <div className="form-grid">
-             <div className="form-group">
+            <div className="form-group">
+              <label className="form-label">Gender</label>
+              <select name="gender" className="form-input" value={formData.gender || ''} onChange={handleChange} required>
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Phone Number</label>
+              <input 
+                type="text" name="phone" className="form-input" 
+                value={formData.phone} onChange={handleChange} 
+              />
+            </div>
+          </div>
+          <div className="form-grid">
+            <div className="form-group">
               <label className="form-label">Email</label>
               <input 
                 type="email" name="email" className="form-input" 
                 value={formData.email} onChange={handleChange} required 
+                disabled={!!staffMember}
               />
             </div>
             <div className="form-group">

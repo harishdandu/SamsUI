@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, UserPlus, MoreVertical, Filter, Loader2, Edit, Trash2, Banknote } from 'lucide-react';
+import { Search, UserPlus, MoreVertical, Filter, Loader2, Edit, Trash2, Banknote, Upload } from 'lucide-react';
 import { staffApi } from '../utils/api';
 import StaffModal from '../components/StaffModal';
+import BulkStaffUploadModal from '../components/BulkStaffUploadModal';
 import PayrollModal from '../components/PayrollModal';
 import { useAuth } from '../context/AuthContext';
 
@@ -16,11 +17,18 @@ const Staff = () => {
   const [error, setError] = useState(null);
   const [actionMenuId, setActionMenuId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState(null);
   const [isPayrollModalOpen, setIsPayrollModalOpen] = useState(false);
   const [payrollStaff, setPayrollStaff] = useState(null);
+  const [toastMessage, setToastMessage] = useState(null);
 
-  const isAdmin = user?.role?.toLowerCase() === 'admin';
+  const isAdmin = user?.role?.toLowerCase() === 'admin' || user?.role?.toLowerCase() === 'super admin';
+
+  const showToast = (message, type = 'success') => {
+    setToastMessage({ message, type });
+    setTimeout(() => setToastMessage(null), 5000);
+  };
 
   const handleOpenPayroll = (member) => {
     setPayrollStaff(member);
@@ -84,6 +92,19 @@ const Staff = () => {
     }
   };
 
+  const handleBulkStaffUpload = async (staffsData) => {
+    if (!isAdmin) return;
+    try {
+      const response = await staffApi.bulkRegister(staffsData);
+      showToast(response.data?.message || 'Staff registered successfully', 'success');
+      await fetchStaff();
+    } catch (err) {
+      console.error('Error during bulk staff upload:', err);
+      showToast(err.response?.data?.message || 'Error registering staff', 'error');
+      throw err;
+    }
+  };
+
   const handleDeleteStaff = async (id) => {
     if (!isAdmin) return;
     if (window.confirm('Are you sure you want to delete this staff record?')) {
@@ -105,16 +126,27 @@ const Staff = () => {
 
   return (
     <div className="staff-page">
+      {toastMessage && (
+        <div className={`toast-notification toast-${toastMessage.type}`}>
+          {toastMessage.message}
+        </div>
+      )}
       <header className="page-header">
         <div className="header-left">
           <h1>Staff Management</h1>
           <p>Manage teachers, admins, and other school staff.</p>
         </div>
         {isAdmin && (
-          <button className="btn btn-primary" onClick={handleAddStaff}>
-            <UserPlus size={18} />
-            Add Staff
-          </button>
+          <div className="header-actions">
+            <button className="btn btn-secondary" onClick={() => setIsBulkModalOpen(true)}>
+              <Upload size={18} />
+              Bulk Register Staff
+            </button>
+            <button className="btn btn-primary" onClick={handleAddStaff}>
+              <UserPlus size={18} />
+              Add Staff
+            </button>
+          </div>
         )}
       </header>
 
@@ -149,6 +181,7 @@ const Staff = () => {
                 <th>Name</th>
                 <th>Role</th>
                 <th>Email</th>
+                <th>Phone</th>
                 <th>Status</th>
                 {isAdmin && <th>Action</th>}
               </tr>
@@ -161,6 +194,7 @@ const Staff = () => {
                     <td>{member.firstName} {member.lastName}</td>
                     <td>{member.role}</td>
                     <td>{member.email}</td>
+                    <td>{member.phone || 'N/A'}</td>
                     <td>
                       <span className={`badge badge-${member.status === 'Active' ? 'success' : 'warning'}`}>
                         {member.status}
@@ -179,13 +213,20 @@ const Staff = () => {
                             <div className="action-menu card">
                               {member._id !== user?.staffId ? (
                                 <>
-                                  <button onClick={() => handleEditStaff(member)}><Edit size={16} /> Edit</button>
-                                  {(isAdmin && new Date().getDate() >= 10) && (
-                                    <button onClick={() => handleOpenPayroll(member)}><Banknote size={16} /> Payroll</button>
+                                  {/* Restrict Admin from managing Super Admin */}
+                                  {!(user?.role?.toLowerCase() !== 'super admin' && member.role?.toLowerCase() === 'super admin') ? (
+                                    <>
+                                      <button onClick={() => handleEditStaff(member)}><Edit size={16} /> Edit</button>
+                                      {(isAdmin && new Date().getDate() >= 10) && (
+                                        <button onClick={() => handleOpenPayroll(member)}><Banknote size={16} /> Payroll</button>
+                                      )}
+                                      <button className="delete" onClick={() => handleDeleteStaff(member._id)}>
+                                        <Trash2 size={16} /> Delete
+                                      </button>
+                                    </>
+                                  ) : (
+                                    <p style={{ padding: '0.5rem', fontSize: '0.75rem', color: 'var(--text-secondary)', margin: 0 }}>Access restricted</p>
                                   )}
-                                  <button className="delete" onClick={() => handleDeleteStaff(member._id)}>
-                                    <Trash2 size={16} /> Delete
-                                  </button>
                                 </>
                               ) : (
                                 <p style={{ padding: '0.5rem', fontSize: '0.75rem', color: 'var(--text-secondary)', margin: 0 }}>Self management restricted</p>
@@ -199,7 +240,7 @@ const Staff = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={isAdmin ? 6 : 5} style={{ textAlign: 'center', padding: '2rem' }}>
+                  <td colSpan={isAdmin ? 7 : 6} style={{ textAlign: 'center', padding: '2rem' }}>
                     No staff records found.
                   </td>
                 </tr>
@@ -224,8 +265,33 @@ const Staff = () => {
         staff={payrollStaff}
       />
 
+      <BulkStaffUploadModal 
+        isOpen={isBulkModalOpen}
+        onClose={() => setIsBulkModalOpen(false)}
+        onUploadComplete={handleBulkStaffUpload}
+      />
+
       <style>{`
+        .toast-notification {
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          padding: 1rem 1.5rem;
+          border-radius: var(--radius);
+          color: white;
+          font-weight: 500;
+          z-index: 9999;
+          box-shadow: var(--shadow-lg);
+          animation: slideIn 0.3s ease-out;
+        }
+        .toast-success { background-color: var(--success); }
+        .toast-error { background-color: var(--danger); }
+        @keyframes slideIn {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
         .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .header-actions { display: flex; gap: 1rem; }
         .header-left h1 { font-size: 1.875rem; font-weight: 700; margin-bottom: 0.5rem; }
         .header-left p { color: var(--text-secondary); }
         .table-actions { display: flex; gap: 1rem; margin-bottom: 1.5rem; padding: 1rem; }

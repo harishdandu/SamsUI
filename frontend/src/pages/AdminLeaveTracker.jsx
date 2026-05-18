@@ -21,11 +21,21 @@ const AdminLeaveTracker = () => {
       setLoading(true);
       if (activeTab === 'pending') {
         const res = await leaveApi.getAll();
-        // Only show pending leaves
-        setLeaves(res.data.filter(l => l.status === 'Pending'));
+        // Only show pending leaves and hide Super Admin requests from non-Super Admins
+        const pendingLeaves = res.data.filter(l => l.status === 'Pending');
+        if (user?.role?.toLowerCase() !== 'super admin') {
+          setLeaves(pendingLeaves.filter(l => l.staffId?.role?.toLowerCase() !== 'super admin'));
+        } else {
+          setLeaves(pendingLeaves);
+        }
       } else {
         const res = await staffApi.getAll({ schoolId: user?.schoolId });
-        setStaffList(res.data);
+        // Hide Super Admin balances from non-Super Admins
+        if (user?.role?.toLowerCase() !== 'super admin') {
+          setStaffList(res.data.filter(s => s.role?.toLowerCase() !== 'super admin'));
+        } else {
+          setStaffList(res.data);
+        }
       }
     } catch (err) {
       console.error('Error fetching data:', err);
@@ -116,30 +126,38 @@ const AdminLeaveTracker = () => {
                 </div>
 
                 <div className="card-actions">
-                  <input 
-                    type="text" 
-                    placeholder="Add remarks (optional)..." 
-                    className="form-input"
-                    value={remarks[leave._id] || ''}
-                    onChange={(e) => setRemarks({...remarks, [leave._id]: e.target.value})}
-                  />
-                  <div className="btn-group">
-                    <button 
-                      className="btn btn-danger" 
-                      onClick={() => handleAction(leave._id, 'Rejected')}
-                      disabled={actioning === leave._id}
-                    >
-                      <X size={18} /> Reject
-                    </button>
-                    <button 
-                      className="btn btn-primary" 
-                      onClick={() => handleAction(leave._id, 'Approved')}
-                      disabled={actioning === leave._id}
-                    >
-                      {actioning === leave._id ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />}
-                      Approve
-                    </button>
-                  </div>
+                  {leave.staffId?._id !== user?.staffId ? (
+                    <>
+                      <input 
+                        type="text" 
+                        placeholder="Add remarks (optional)..." 
+                        className="form-input"
+                        value={remarks[leave._id] || ''}
+                        onChange={(e) => setRemarks({...remarks, [leave._id]: e.target.value})}
+                      />
+                      <div className="btn-group">
+                        <button 
+                          className="btn btn-danger" 
+                          onClick={() => handleAction(leave._id, 'Rejected')}
+                          disabled={actioning === leave._id}
+                        >
+                          <X size={18} /> Reject
+                        </button>
+                        <button 
+                          className="btn btn-primary" 
+                          onClick={() => handleAction(leave._id, 'Approved')}
+                          disabled={actioning === leave._id}
+                        >
+                          {actioning === leave._id ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />}
+                          Approve
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <div style={{ flex: 1, textAlign: 'right', color: 'var(--text-secondary)', fontSize: '0.875rem', fontStyle: 'italic' }}>
+                      Self-approval restricted. Please ask another Admin/HR to review.
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

@@ -25,6 +25,10 @@ const staffSchema = new mongoose.Schema({
     unique: true
   },
   phone: String,
+  gender: {
+    type: String,
+    enum: ['Male', 'Female', 'Other']
+  },
   schoolId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'SchoolProfile'

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save, Loader2 } from 'lucide-react';
+import { classApi } from '../utils/api';
 
 const StudentModal = ({ isOpen, onClose, onSave, student = null }) => {
   const initialState = {
@@ -7,8 +8,8 @@ const StudentModal = ({ isOpen, onClose, onSave, student = null }) => {
     lastName: '',
     parentName: '',
     phoneNumber: '',
-    class: '8',
-    section: 'A',
+    class: '',
+    section: '',
     fees: 0,
     firstInstallmentAmount: 0,
     feeFrequency: 'Quarterly',
@@ -19,6 +20,35 @@ const StudentModal = ({ isOpen, onClose, onSave, student = null }) => {
 
   const [formData, setFormData] = useState(initialState);
   const [loading, setLoading] = useState(false);
+  const [availableClassesConfig, setAvailableClassesConfig] = useState([]);
+  const [availableSections, setAvailableSections] = useState([]);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchClassConfig();
+    }
+  }, [isOpen]);
+
+  const fetchClassConfig = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem('user'));
+      const response = await classApi.getAll({ schoolId: user?.schoolId });
+      setAvailableClassesConfig(response.data);
+      
+      // If we're adding a new student, set the first class and its first section as default
+      if (!student && response.data.length > 0) {
+        const firstClass = response.data[0];
+        setFormData(prev => ({ 
+          ...prev, 
+          class: firstClass.name,
+          section: firstClass.sections[0] || ''
+        }));
+        setAvailableSections(firstClass.sections || []);
+      }
+    } catch (err) {
+      console.error('Error fetching class config:', err);
+    }
+  };
 
   useEffect(() => {
     if (student) {
@@ -27,22 +57,40 @@ const StudentModal = ({ isOpen, onClose, onSave, student = null }) => {
         lastName: student.lastName || '',
         parentName: student.parentName || '',
         phoneNumber: student.phoneNumber || '',
-        class: student.class || '8',
-        section: student.section || 'A',
+        class: student.class || '',
+        section: student.section || '',
         fees: student.fees?.amount || 0,
         firstInstallmentAmount: student.fees?.firstInstallmentAmount || 0,
         feeFrequency: student.fees?.feeFrequency || 'Quarterly',
         tuitionStartDate: student.fees?.tuitionStartDate ? new Date(student.fees.tuitionStartDate).toISOString().split('T')[0] : '',
         tuitionEndDate: student.fees?.tuitionEndDate ? new Date(student.fees.tuitionEndDate).toISOString().split('T')[0] : ''
       });
-    } else {
-      setFormData(initialState);
+      
+      // Filter sections for the student's current class
+      const currentClassConfig = availableClassesConfig.find(c => c.name === student.class);
+      setAvailableSections(currentClassConfig ? currentClassConfig.sections : []);
+    } else if (isOpen && availableClassesConfig.length > 0) {
+      // Re-filter sections whenever class changes during creation
+      const currentClassConfig = availableClassesConfig.find(c => c.name === formData.class);
+      setAvailableSections(currentClassConfig ? currentClassConfig.sections : []);
     }
-  }, [student, isOpen]);
+  }, [student, isOpen, availableClassesConfig, formData.class]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => {
+      const newData = { ...prev, [name]: value };
+      
+      // If class changes, update available sections and set first section as default
+      if (name === 'class') {
+        const classConfig = availableClassesConfig.find(c => c.name === value);
+        const sections = classConfig ? classConfig.sections : [];
+        setAvailableSections(sections);
+        newData.section = sections[0] || '';
+      }
+      
+      return newData;
+    });
   };
 
   const calculateInstallments = () => {
@@ -197,8 +245,10 @@ const StudentModal = ({ isOpen, onClose, onSave, student = null }) => {
                 className="form-input" 
                 value={formData.class}
                 onChange={handleChange}
+                required
               >
-                {Array.from({ length: 10 }, (_, i) => (i + 1).toString()).map(c => <option key={c} value={c}>Class {c}</option>)}
+                <option value="">Select Class</option>
+                {availableClassesConfig.map(c => <option key={c._id} value={c.name}>Class {c.name}</option>)}
               </select>
             </div>
             <div className="form-group">
@@ -208,8 +258,10 @@ const StudentModal = ({ isOpen, onClose, onSave, student = null }) => {
                 className="form-input" 
                 value={formData.section}
                 onChange={handleChange}
+                required
               >
-                {['A', 'B'].map(s => <option key={s} value={s}>{s}</option>)}
+                <option value="">Select Section</option>
+                {availableSections.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
             <div className="form-group">
