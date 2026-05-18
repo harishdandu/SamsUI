@@ -21,7 +21,7 @@ const Syllabus = () => {
   const [activeTab, setActiveTab] = useState('manage');
   const [mySyllabuses, setMySyllabuses] = useState([]);
   const [loadingMySyllabuses, setLoadingMySyllabuses] = useState(false);
-  const [expandedSyllabusId, setExpandedSyllabusId] = useState(null);
+  const [expandedSyllabuses, setExpandedSyllabuses] = useState({});
 
   useEffect(() => {
     fetchInitialData();
@@ -50,6 +50,15 @@ const Syllabus = () => {
       setLoadingMySyllabuses(true);
       const response = await syllabusApi.getMySyllabuses();
       setMySyllabuses(response.data);
+      
+      // Auto-expand all chapters on load!
+      if (response.data && response.data.length > 0) {
+        const initialExpanded = {};
+        response.data.forEach(s => {
+          initialExpanded[s._id] = true;
+        });
+        setExpandedSyllabuses(initialExpanded);
+      }
     } catch (error) {
       console.error('Error fetching my syllabuses:', error);
     } finally {
@@ -499,7 +508,7 @@ const Syllabus = () => {
                     <p><strong>Chapters:</strong> {s.chapters?.length || 0} main chapters configured.</p>
                     {s.pdfUrl && <p className="pdf-url-tag">📄 {s.pdfUrl}</p>}
 
-                    {expandedSyllabusId === s._id && (
+                    {expandedSyllabuses[s._id] && (
                       <div className="syllabus-chapters-preview" style={{ marginTop: '1.25rem', padding: '1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid var(--border)' }}>
                         <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--text-primary)', fontSize: '0.95rem' }}>Chapters & Subtopics</h4>
                         <div className="chapters-preview-list" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '250px', overflowY: 'auto' }}>
@@ -536,10 +545,10 @@ const Syllabus = () => {
                     </button>
                     
                     <button 
-                      className={`btn btn-outline btn-sm ${expandedSyllabusId === s._id ? 'active' : ''}`}
-                      onClick={() => setExpandedSyllabusId(expandedSyllabusId === s._id ? null : s._id)}
+                      className={`btn btn-outline btn-sm ${expandedSyllabuses[s._id] ? 'active' : ''}`}
+                      onClick={() => setExpandedSyllabuses(prev => ({ ...prev, [s._id]: !prev[s._id] }))}
                     >
-                      {expandedSyllabusId === s._id ? "Hide Chapters" : "View Chapters"}
+                      {expandedSyllabuses[s._id] ? "Hide Chapters" : "View Chapters"}
                     </button>
 
                     {s.fileBase64 && (
