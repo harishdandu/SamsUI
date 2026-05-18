@@ -30,20 +30,22 @@ const Register = () => {
 
     // Clean up spaces, dashes, parentheses to validate
     const phoneCleaned = formData.phoneNumber.replace(/[\s\-\(\)]/g, '');
-    const phoneRegex = /^\+91[6-9]\d{9}$/;
+    const phoneRegex = /^[6-9]\d{9}$/;
     if (!phoneRegex.test(phoneCleaned)) {
       return setMessage({ 
         type: 'error', 
-        text: 'Please enter a valid Indian phone number starting with +91 followed by 10 digits (e.g., +91 98765 43210).' 
+        text: 'Please enter a valid 10-digit Indian phone number (e.g., 98765 43210).' 
       });
     }
+
+    const fullPhoneNumber = `+91${phoneCleaned}`;
 
     setLoading(true);
     setMessage(null);
     try {
       await schoolApi.register({
         ...formData,
-        phoneNumber: phoneCleaned
+        phoneNumber: fullPhoneNumber
       });
       setStep(2);
       setMessage({ type: 'success', text: 'OTP sent to your email. Please verify.' });
@@ -142,13 +144,13 @@ const Register = () => {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Phone Number</label>
+            <label className="form-label">Phone Number (10-digit)</label>
             <div className={`input-wrapper ${step === 2 ? 'disabled' : ''}`}>
               <Phone size={18} />
               <input 
                 type="text" 
                 name="phoneNumber"
-                placeholder="+91 99999 99999"
+                placeholder="98765 43210"
                 value={formData.phoneNumber}
                 onChange={handleChange}
                 disabled={step === 2}
