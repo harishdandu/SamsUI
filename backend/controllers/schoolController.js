@@ -6,7 +6,7 @@ import bcrypt from 'bcryptjs';
 
 export const registerSchool = async (req, res) => {
   try {
-    const { email, schoolName, registrationNumber, password } = req.body;
+    const { email, schoolName, registrationNumber, password, phoneNumber } = req.body;
 
     // Check if school already exists and is verified
     const existingSchool = await SchoolProfile.findOne({
@@ -26,6 +26,8 @@ export const registerSchool = async (req, res) => {
       // Update existing unverified record
       existingSchool.schoolName = schoolName;
       existingSchool.password = password;
+      existingSchool.phoneNumber = phoneNumber;
+      existingSchool.phone = phoneNumber;
       existingSchool.otp = otpHash;
       existingSchool.otpExpires = otpExpires;
       await existingSchool.save();
@@ -36,6 +38,8 @@ export const registerSchool = async (req, res) => {
         schoolName,
         registrationNumber,
         password,
+        phoneNumber,
+        phone: phoneNumber,
         otp: otpHash,
         otpExpires
       });
@@ -104,6 +108,8 @@ export const verifySchoolOTP = async (req, res) => {
       email: email,
       role: 'Super Admin',
       schoolId: school._id,
+      phone: school.phoneNumber || school.phone,
+      phoneNumber: school.phoneNumber || school.phone,
       status: 'Active'
     });
 
@@ -116,6 +122,8 @@ export const verifySchoolOTP = async (req, res) => {
       password: password || school.password,
       role: 'Super Admin',
       schoolId: school._id,
+      phone: school.phoneNumber || school.phone,
+      phoneNumber: school.phoneNumber || school.phone,
       staffId: staffMember._id // Link to the staff record
     });
 
@@ -139,12 +147,15 @@ export const updateSchoolProfile = async (req, res) => {
     }
 
     // Update fields
-    const allowedFields = ['schoolName', 'phone', 'plotNo', 'streetName', 'mandal', 'district', 'state', 'logo'];
+    const allowedFields = ['schoolName', 'phone', 'phoneNumber', 'plotNo', 'streetName', 'mandal', 'district', 'state', 'logo'];
     allowedFields.forEach(field => {
       if (updateData[field] !== undefined) {
         school[field] = updateData[field];
       }
     });
+
+    if (updateData.phoneNumber) school.phone = updateData.phoneNumber;
+    if (updateData.phone) school.phoneNumber = updateData.phone;
 
     school.isProfileCompleted = true;
     await school.save();

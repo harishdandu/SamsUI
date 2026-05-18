@@ -25,6 +25,7 @@ const staffSchema = new mongoose.Schema({
     unique: true
   },
   phone: String,
+  phoneNumber: String,
   gender: {
     type: String,
     enum: ['Male', 'Female', 'Other']

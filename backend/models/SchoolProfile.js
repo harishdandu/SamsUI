@@ -31,6 +31,7 @@ const schoolProfileSchema = new mongoose.Schema({
     default: false
   },
   phone: String,
+  phoneNumber: String,
   plotNo: String,
   streetName: String,
   mandal: String,

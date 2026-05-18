@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, Building, ArrowRight, ShieldCheck, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Mail, Lock, Building, ArrowRight, ShieldCheck, Loader2, AlertCircle, CheckCircle2, Phone } from 'lucide-react';
 import { schoolApi } from '../utils/api';
 
 const Register = () => {
@@ -9,6 +9,7 @@ const Register = () => {
     email: '',
     schoolName: '',
     registrationNumber: '',
+    phoneNumber: '',
     password: '',
     confirmPassword: ''
   });
@@ -27,10 +28,23 @@ const Register = () => {
       return setMessage({ type: 'error', text: 'Passwords do not match!' });
     }
 
+    // Clean up spaces, dashes, parentheses to validate
+    const phoneCleaned = formData.phoneNumber.replace(/[\s\-\(\)]/g, '');
+    const phoneRegex = /^\+91[6-9]\d{9}$/;
+    if (!phoneRegex.test(phoneCleaned)) {
+      return setMessage({ 
+        type: 'error', 
+        text: 'Please enter a valid Indian phone number starting with +91 followed by 10 digits (e.g., +91 98765 43210).' 
+      });
+    }
+
     setLoading(true);
     setMessage(null);
     try {
-      await schoolApi.register(formData);
+      await schoolApi.register({
+        ...formData,
+        phoneNumber: phoneCleaned
+      });
       setStep(2);
       setMessage({ type: 'success', text: 'OTP sent to your email. Please verify.' });
     } catch (err) {
@@ -120,6 +134,22 @@ const Register = () => {
                 name="registrationNumber"
                 placeholder="REG123456"
                 value={formData.registrationNumber}
+                onChange={handleChange}
+                disabled={step === 2}
+                required 
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Phone Number</label>
+            <div className={`input-wrapper ${step === 2 ? 'disabled' : ''}`}>
+              <Phone size={18} />
+              <input 
+                type="text" 
+                name="phoneNumber"
+                placeholder="+91 99999 99999"
+                value={formData.phoneNumber}
                 onChange={handleChange}
                 disabled={step === 2}
                 required 

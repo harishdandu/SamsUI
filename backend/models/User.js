@@ -33,6 +33,8 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'SchoolProfile'
   },
+  phone: String,
+  phoneNumber: String,
   passwordOTP: String,
   passwordOTPExpires: Date
 }, { timestamps: true });
