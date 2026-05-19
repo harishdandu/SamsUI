@@ -40,6 +40,18 @@ const Syllabus = () => {
   }, [selectedClass, selectedSubject]);
 
   useEffect(() => {
+    if (selectedSubject) {
+      const activeSub = subjects.find(sub => sub._id === selectedSubject);
+      if (activeSub && activeSub.classes) {
+        const currentClassObj = classes.find(c => c._id === selectedClass);
+        if (currentClassObj && !activeSub.classes.includes(currentClassObj.name)) {
+          setSelectedClass('');
+        }
+      }
+    }
+  }, [selectedSubject, subjects, classes, selectedClass]);
+
+  useEffect(() => {
     if (activeTab === 'view-all') {
       fetchMySyllabuses();
     }
@@ -97,20 +109,27 @@ const Syllabus = () => {
         const staffRes = await staffApi.getById(user.staffId);
         const teachingSubs = staffRes.data.teachingSubjects || [];
         
-        // Extract unique subjects
-        const teacherSubjects = teachingSubs.map(ts => ({
-          _id: ts.subjectId?._id || ts.subjectId,
-          name: ts.subjectId?.name || 'Assigned Subject'
-        }));
-        
-        const uniqueSubjects = [];
+        // Extract unique subjects and merge their assigned classes
         const map = new Map();
-        for (const item of teacherSubjects) {
-          if (item._id && !map.has(item._id.toString())) {
-            map.set(item._id.toString(), true);
-            uniqueSubjects.push(item);
+        for (const ts of teachingSubs) {
+          const subId = ts.subjectId?._id || ts.subjectId;
+          if (subId) {
+            const key = subId.toString();
+            const classesForSub = ts.classes || [];
+            if (!map.has(key)) {
+              map.set(key, {
+                _id: subId,
+                name: ts.subjectId?.name || 'Assigned Subject',
+                classes: [...classesForSub]
+              });
+            } else {
+              const existing = map.get(key);
+              existing.classes = Array.from(new Set([...existing.classes, ...classesForSub]));
+            }
           }
         }
+        
+        const uniqueSubjects = Array.from(map.values());
         setSubjects(uniqueSubjects);
         if (uniqueSubjects.length > 0) {
           setSelectedSubject(uniqueSubjects[0]._id);
@@ -273,6 +292,14 @@ const Syllabus = () => {
     }
   };
 
+  const activeSubject = subjects.find(sub => sub._id === selectedSubject);
+  const filteredClasses = classes.filter(c => {
+    if (!selectedSubject) return true;
+    if (!activeSubject) return true;
+    if (!activeSubject.classes || activeSubject.classes.length === 0) return true;
+    return activeSubject.classes.includes(c.name);
+  });
+
   return (
     <div className="syllabus-container page-container">
       <div className="page-header">
@@ -325,7 +352,7 @@ const Syllabus = () => {
                     className="form-select"
                   >
                     <option value="">Select a class...</option>
-                    {classes.map(c => (
+                    {filteredClasses.map(c => (
                       <option key={c._id} value={c._id}>Class {c.name}</option>
                     ))}
                   </select>

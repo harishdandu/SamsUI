@@ -54,7 +54,7 @@ export const uploadSyllabus = async (req, res) => {
     let isDemoFile = false;
 
     // Check for demo files FIRST to guarantee a flawless experience and detailed subtopics
-    if (req.file.originalname && req.file.originalname.includes("10th Eng Maths")) {
+    if (req.file.originalname && req.file.originalname.includes("__FORCE_DEMO_MODE_ACTIVE__")) {
       isDemoFile = true;
       chapters = [
         { 
@@ -752,9 +752,11 @@ export const uploadSyllabus = async (req, res) => {
           }
         }
         
-        // If regex found nothing, just return a generic chapter list so it doesn't fail
+        // If regex found nothing, return a clean error response instead of generic dummy data
         if (chapters.length === 0) {
-          chapters = [{ name: "Chapter 1: Introduction", subtopics: [] }, { name: "Chapter 2: Main Content", subtopics: [] }];
+          return res.status(400).json({ 
+            message: "Failed to extract syllabus chapters from the uploaded document. Please ensure it contains readable text." 
+          });
         }
       }
     }
@@ -934,8 +936,16 @@ export const getMySyllabuses = async (req, res) => {
     const schoolId = req.user.schoolId;
     const userId = req.user._id;
 
-    const syllabuses = await Syllabus.find({ schoolId, addedBy: userId })
+    let query = { schoolId };
+    
+    // Only restrict to addedBy if the user is a Teacher
+    if (req.user.role === 'Teacher') {
+      query.addedBy = userId;
+    }
+
+    const syllabuses = await Syllabus.find(query)
       .populate('classId', 'name')
+      .populate('subjectId', 'name')
       .sort({ createdAt: -1 });
 
     res.status(200).json(syllabuses);
