@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Save, Loader2, Plus, X, Settings2 } from 'lucide-react';
 import { classApi } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
+import { toast } from 'react-hot-toast';
 
 const ClassesPage = () => {
   const { user } = useAuth();
@@ -96,7 +97,7 @@ const ClassesPage = () => {
       
       // Check for duplicates
       if (currentSections.some((s, idx) => s === newName && idx !== index)) {
-        alert('A section with this name already exists in this class.');
+        toast.error('A section with this name already exists in this class.');
         return prev;
       }
 
@@ -118,7 +119,7 @@ const ClassesPage = () => {
       const hasAnySection = availableClasses.some(c => config[c].sections.length > 0);
       
       if (!hasAnySection) {
-        alert('Please add at least one section to at least one class before saving.');
+        toast.error('Please add at least one section to at least one class before saving.');
         return;
       }
 
@@ -129,10 +130,10 @@ const ClassesPage = () => {
       }));
       
       await classApi.bulkUpdate({ configs, schoolId: user?.schoolId });
-      alert('Class configurations saved successfully!');
+      toast.success('Class configurations saved successfully!');
     } catch (err) {
       console.error('Error saving configurations:', err);
-      alert('Failed to save configurations.');
+      toast.error('Failed to save configurations.');
     } finally {
       setSaving(false);
     }

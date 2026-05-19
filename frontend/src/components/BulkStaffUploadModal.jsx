@@ -40,6 +40,10 @@ const BulkStaffUploadModal = ({ isOpen, onClose, onUploadComplete }) => {
         setError('Please upload a valid Excel file (.xlsx or .xls)');
         return;
       }
+      if (selectedFile.size > 8 * 1024 * 1024) {
+        setError('File size exceeds the 8MB limit. Please upload a smaller file.');
+        return;
+      }
       setFile(selectedFile);
       setError(null);
       parseFile(selectedFile);

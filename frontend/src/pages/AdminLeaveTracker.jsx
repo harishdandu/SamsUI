@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { leaveApi, staffApi } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { Check, X, Clock, Loader2, User, FileText, Calendar, Wallet } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 const AdminLeaveTracker = () => {
   const { user } = useAuth();
@@ -51,10 +52,11 @@ const AdminLeaveTracker = () => {
         status, 
         adminRemarks: remarks[id] || '' 
       });
+      toast.success(`Leave request ${status.toLowerCase()} successfully!`);
       fetchData();
     } catch (err) {
       console.error('Error updating leave status:', err);
-      alert(err.response?.data?.message || 'Failed to update leave status.');
+      toast.error(err.response?.data?.message || 'Failed to update leave status.');
     } finally {
       setActioning(null);
     }

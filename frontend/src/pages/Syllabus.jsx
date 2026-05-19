@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { BookOpen, Upload, Loader2, Save, Trash2, Plus, GripVertical } from 'lucide-react';
 import '../styles/Syllabus.css';
 import { classApi, subjectApi, staffApi, syllabusApi } from '../utils/api';
+import { toast } from 'react-hot-toast';
 
 const Syllabus = () => {
   const { user } = useAuth();
@@ -96,7 +97,7 @@ const Syllabus = () => {
       document.body.removeChild(link);
     } catch (e) {
       console.error("Download Error:", e);
-      alert("Failed to download file: " + e.message);
+      toast.error("Failed to download file: " + e.message);
     }
   };
 
@@ -187,7 +188,7 @@ const Syllabus = () => {
     if (!file || !selectedClass) return;
 
     if (file.size > 12 * 1024 * 1024) {
-      alert("File size exceeds the 12MB limit. Please upload a smaller file.");
+      toast.error("File size exceeds the 12MB limit. Please upload a smaller file.");
       return;
     }
 
@@ -208,10 +209,10 @@ const Syllabus = () => {
       setUploadedPdfUrl(syllabusData.pdfUrl);
       
       setFile(null);
-      alert('Syllabus extracted successfully! Review and click "Save Changes" to save it.');
+      toast.success('Syllabus extracted successfully! Review and click "Save Changes" to save it.');
     } catch (error) {
       console.error('Error uploading syllabus:', error);
-      alert(error.response?.data?.message || 'Error extracting syllabus');
+      toast.error(error.response?.data?.message || 'Error extracting syllabus');
     } finally {
       setLoading(false);
     }
@@ -283,10 +284,10 @@ const Syllabus = () => {
         setSelectedSubject("");
       }
       
-      alert('Syllabus saved successfully!');
+      toast.success('Syllabus saved successfully!');
     } catch (error) {
       console.error('Error updating syllabus:', error);
-      alert('Error updating syllabus');
+      toast.error('Error updating syllabus');
     } finally {
       setSaving(false);
     }
@@ -374,7 +375,7 @@ const Syllabus = () => {
                       onChange={(e) => {
                         const selectedFile = e.target.files[0];
                         if (selectedFile && selectedFile.size > 12 * 1024 * 1024) {
-                          alert("File size exceeds the 12MB limit. Please select a smaller file.");
+                          toast.error("File size exceeds the 12MB limit. Please select a smaller file.");
                           e.target.value = null; // reset input
                           setFile(null);
                           return;

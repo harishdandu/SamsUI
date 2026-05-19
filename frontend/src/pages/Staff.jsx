@@ -6,6 +6,7 @@ import StaffModal from '../components/StaffModal';
 import BulkStaffUploadModal from '../components/BulkStaffUploadModal';
 import PayrollModal from '../components/PayrollModal';
 import { useAuth } from '../context/AuthContext';
+import { toast } from 'react-hot-toast';
 
 const Staff = () => {
   const navigate = useNavigate();
@@ -21,14 +22,8 @@ const Staff = () => {
   const [selectedStaff, setSelectedStaff] = useState(null);
   const [isPayrollModalOpen, setIsPayrollModalOpen] = useState(false);
   const [payrollStaff, setPayrollStaff] = useState(null);
-  const [toastMessage, setToastMessage] = useState(null);
 
   const isAdmin = user?.role?.toLowerCase() === 'admin' || user?.role?.toLowerCase() === 'super admin';
-
-  const showToast = (message, type = 'success') => {
-    setToastMessage({ message, type });
-    setTimeout(() => setToastMessage(null), 5000);
-  };
 
   const handleOpenPayroll = (member) => {
     setPayrollStaff(member);
@@ -82,12 +77,16 @@ const Staff = () => {
     try {
       if (selectedStaff) {
         await staffApi.update(selectedStaff._id, formData);
+        toast.success('Staff member updated successfully!');
       } else {
         await staffApi.create(formData);
+        toast.success('Staff member registered successfully!');
       }
       await fetchStaff();
     } catch (err) {
       console.error('Error saving staff:', err);
+      const errMsg = err.response?.data?.message || 'Failed to save staff.';
+      toast.error(errMsg);
       throw err;
     }
   };
@@ -96,11 +95,11 @@ const Staff = () => {
     if (!isAdmin) return;
     try {
       const response = await staffApi.bulkRegister(staffsData);
-      showToast(response.data?.message || 'Staff registered successfully', 'success');
+      toast.success(response.data?.message || 'Staff registered successfully');
       await fetchStaff();
     } catch (err) {
       console.error('Error during bulk staff upload:', err);
-      showToast(err.response?.data?.message || 'Error registering staff', 'error');
+      toast.error(err.response?.data?.message || 'Error registering staff');
       throw err;
     }
   };
@@ -110,9 +109,11 @@ const Staff = () => {
     if (window.confirm('Are you sure you want to delete this staff record?')) {
       try {
         await staffApi.delete(id);
+        toast.success('Staff member deleted successfully!');
         await fetchStaff();
       } catch (err) {
         console.error('Error deleting staff:', err);
+        toast.error(err.response?.data?.message || 'Failed to delete staff.');
       }
     }
     setActionMenuId(null);
@@ -126,11 +127,6 @@ const Staff = () => {
 
   return (
     <div className="staff-page">
-      {toastMessage && (
-        <div className={`toast-notification toast-${toastMessage.type}`}>
-          {toastMessage.message}
-        </div>
-      )}
       <header className="page-header">
         <div className="header-left">
           <h1>Staff Management</h1>

@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Save, Loader2, CheckCircle2, Search, Users, History, Banknote } from 'lucide-react';
 import { staffApi, staffAttendanceApi } from '../utils/api';
+import { useAuth } from '../context/AuthContext';
 
 import PayrollModal from '../components/PayrollModal';
 
 const StaffPayroll = () => {
+  const { user } = useAuth();
   const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
@@ -65,7 +67,7 @@ const StaffPayroll = () => {
                   <td><strong>{s.employeeId}</strong></td>
                   <td>{s.firstName} {s.lastName}</td>
                   <td>{s.role}</td>
-                  <td>${s.salary || 0}</td>
+                  <td>₹{s.salary?.base || 0}</td>
                   <td>
                     <button 
                       className="btn btn-primary btn-sm"

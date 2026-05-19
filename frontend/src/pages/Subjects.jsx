@@ -3,6 +3,7 @@ import { Search, BookPlus, Edit, Trash2, Loader2, Book } from 'lucide-react';
 import { classApi } from '../utils/api';
 import SubjectModal from '../components/SubjectModal';
 import { useAuth } from '../context/AuthContext';
+import { toast } from 'react-hot-toast';
 
 const Subjects = () => {
   const { user } = useAuth();
@@ -124,9 +125,10 @@ const Subjects = () => {
       await classApi.bulkUpdate({ configs: updatedConfigs, schoolId: user?.schoolId });
       setIsModalOpen(false);
       fetchData();
+      toast.success('Subject configuration saved successfully!');
     } catch (err) {
       console.error('Error saving subject:', err);
-      alert('Failed to save subject configuration.');
+      toast.error('Failed to save subject configuration.');
     } finally {
       setSaving(false);
     }

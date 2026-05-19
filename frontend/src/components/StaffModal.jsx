@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, Loader2, Save, Plus, Trash2 } from 'lucide-react';
+import { X, Loader2, Save, Plus, Trash2, AlertCircle } from 'lucide-react';
 import { subjectApi } from '../utils/api';
+import { toast } from 'react-hot-toast';
 
 const StaffModal = ({ isOpen, onClose, onSave, staffMember = null }) => {
   const [loading, setLoading] = useState(false);
@@ -39,6 +40,12 @@ const StaffModal = ({ isOpen, onClose, onSave, staffMember = null }) => {
       console.error('Error fetching subjects:', err);
     }
   };
+
+  useEffect(() => {
+    if (isOpen && formData.role === 'Teacher' && availableSubjects.length === 0) {
+      toast.error('Subjects are not added');
+    }
+  }, [formData.role, availableSubjects, isOpen]);
 
   useEffect(() => {
     if (staffMember) {
@@ -106,6 +113,10 @@ const StaffModal = ({ isOpen, onClose, onSave, staffMember = null }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (formData.role === 'Teacher' && availableSubjects.length === 0) {
+      toast.error('Subjects are not added');
+      return;
+    }
     setLoading(true);
     try {
       const user = JSON.parse(localStorage.getItem('user'));
@@ -171,17 +182,24 @@ const StaffModal = ({ isOpen, onClose, onSave, staffMember = null }) => {
             {formData.role === 'Teacher' && (
               <div className="form-group">
                 <label className="form-label">Subject</label>
-                <select 
-                  className="form-input" 
-                  value={formData.teachingSubjects[0]?.subjectId || ''} 
-                  onChange={(e) => handleSubjectChange(e.target.value)}
-                  required
-                >
-                  <option value="">Select Subject</option>
-                  {availableSubjects.map(s => (
-                    <option key={s._id} value={s._id}>{s.name}</option>
-                  ))}
-                </select>
+                {availableSubjects.length === 0 ? (
+                  <div className="subject-error-msg" style={{ color: 'var(--danger)', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.25rem', marginTop: '0.5rem', fontWeight: 600 }}>
+                    <AlertCircle size={16} />
+                    <span>Subjects are not added</span>
+                  </div>
+                ) : (
+                  <select 
+                    className="form-input" 
+                    value={formData.teachingSubjects[0]?.subjectId || ''} 
+                    onChange={(e) => handleSubjectChange(e.target.value)}
+                    required
+                  >
+                    <option value="">Select Subject</option>
+                    {availableSubjects.map(s => (
+                      <option key={s._id} value={s._id}>{s.name}</option>
+                    ))}
+                  </select>
+                )}
               </div>
             )}
           </div>

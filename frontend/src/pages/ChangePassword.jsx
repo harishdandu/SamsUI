@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Lock, Mail, ShieldCheck, Loader2, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 const ChangePassword = () => {
   const [newPassword, setNewPassword] = useState('');
@@ -33,12 +34,14 @@ const ChangePassword = () => {
       
       if (response.ok) {
         setStep(2);
-        setSuccess('OTP has been sent to your registered email.');
+        toast.success('OTP has been sent to your registered email.');
       } else {
         setError(data.message || 'Failed to send OTP');
+        toast.error(data.message || 'Failed to send OTP');
       }
     } catch (err) {
       setError('Connection error. Please try again.');
+      toast.error('Connection error. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -47,9 +50,11 @@ const ChangePassword = () => {
   const handleChangePassword = async (e) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
+      toast.error('Passwords do not match');
       return setError('Passwords do not match');
     }
     if (newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters long');
       return setError('Password must be at least 6 characters long');
     }
 
@@ -70,13 +75,15 @@ const ChangePassword = () => {
       const data = await response.json();
 
       if (response.ok) {
-        setSuccess('Password changed successfully! Redirecting...');
+        toast.success('Password changed successfully! Redirecting...');
         setTimeout(() => navigate('/'), 2000);
       } else {
         setError(data.message || 'Failed to change password');
+        toast.error(data.message || 'Failed to change password');
       }
     } catch (err) {
       setError('Connection error. Please try again.');
+      toast.error('Connection error. Please try again.');
     } finally {
       setLoading(false);
     }

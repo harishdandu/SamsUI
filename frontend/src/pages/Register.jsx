@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Building, ArrowRight, ShieldCheck, Loader2, AlertCircle, CheckCircle2, Phone } from 'lucide-react';
 import { schoolApi } from '../utils/api';
+import { toast } from 'react-hot-toast';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ const Register = () => {
   const handleRegister = async (e) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
+      toast.error('Passwords do not match!');
       return setMessage({ type: 'error', text: 'Passwords do not match!' });
     }
 
@@ -32,6 +34,7 @@ const Register = () => {
     const phoneCleaned = formData.phoneNumber.replace(/[\s\-\(\)]/g, '');
     const phoneRegex = /^[6-9]\d{9}$/;
     if (!phoneRegex.test(phoneCleaned)) {
+      toast.error('Please enter a valid 10-digit Indian phone number (e.g., 98765 43210).');
       return setMessage({ 
         type: 'error', 
         text: 'Please enter a valid 10-digit Indian phone number (e.g., 98765 43210).' 
@@ -48,9 +51,12 @@ const Register = () => {
         phoneNumber: fullPhoneNumber
       });
       setStep(2);
+      toast.success('OTP sent to your email. Please verify.');
       setMessage({ type: 'success', text: 'OTP sent to your email. Please verify.' });
     } catch (err) {
-      setMessage({ type: 'error', text: err.response?.data?.message || 'Registration failed.' });
+      const errMsg = err.response?.data?.message || 'Registration failed.';
+      toast.error(errMsg);
+      setMessage({ type: 'error', text: errMsg });
     } finally {
       setLoading(false);
     }
@@ -66,10 +72,13 @@ const Register = () => {
         otp,
         password: formData.password 
       });
+      toast.success('Registration successful! Redirecting to login...');
       setMessage({ type: 'success', text: 'Registration successful! Admin account created. Redirecting to login...' });
       setTimeout(() => navigate('/login'), 3000);
     } catch (err) {
-      setMessage({ type: 'error', text: err.response?.data?.message || 'Invalid OTP.' });
+      const errMsg = err.response?.data?.message || 'Invalid OTP.';
+      toast.error(errMsg);
+      setMessage({ type: 'error', text: errMsg });
     } finally {
       setLoading(false);
     }
@@ -96,7 +105,7 @@ const Register = () => {
 
         <form onSubmit={step === 1 ? handleRegister : handleVerify}>
           <div className="form-group">
-            <label className="form-label">School Name</label>
+            <label className="form-label">School Name<span style={{ color: '#ef4444' }}> *</span></label>
             <div className={`input-wrapper ${step === 2 ? 'disabled' : ''}`}>
               <Building size={18} />
               <input 
@@ -112,7 +121,7 @@ const Register = () => {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Email Address</label>
+            <label className="form-label">Email Address<span style={{ color: '#ef4444' }}> *</span></label>
             <div className={`input-wrapper ${step === 2 ? 'disabled' : ''}`}>
               <Mail size={18} />
               <input 
@@ -128,7 +137,7 @@ const Register = () => {
           </div>
 
           <div className="form-group">
-            <label className="form-label">School Registration Number</label>
+            <label className="form-label">School Registration Number<span style={{ color: '#ef4444' }}> *</span></label>
             <div className={`input-wrapper ${step === 2 ? 'disabled' : ''}`}>
               <Building size={18} />
               <input 
@@ -144,7 +153,7 @@ const Register = () => {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Phone Number (10-digit)</label>
+            <label className="form-label">Phone Number (10-digit)<span style={{ color: '#ef4444' }}> *</span></label>
             <div className={`input-wrapper ${step === 2 ? 'disabled' : ''}`}>
               <Phone size={18} />
               <input 
@@ -162,7 +171,7 @@ const Register = () => {
           {step === 1 ? (
             <>
               <div className="form-group">
-                <label className="form-label">Password</label>
+                <label className="form-label">Password<span style={{ color: '#ef4444' }}> *</span></label>
                 <div className="input-wrapper">
                   <Lock size={18} />
                   <input 
@@ -177,7 +186,7 @@ const Register = () => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Confirm Password</label>
+                <label className="form-label">Confirm Password<span style={{ color: '#ef4444' }}> *</span></label>
                 <div className="input-wrapper">
                   <Lock size={18} />
                   <input 
@@ -198,7 +207,7 @@ const Register = () => {
           ) : (
             <>
               <div className="form-group">
-                <label className="form-label">Enter OTP</label>
+                <label className="form-label">Enter OTP<span style={{ color: '#ef4444' }}> *</span></label>
                 <div className="input-wrapper">
                   <ShieldCheck size={18} />
                   <input 

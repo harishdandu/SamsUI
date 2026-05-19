@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, Search, Loader2, Download, AlertCircle } from 'lucide-react';
 import { feeApi } from '../utils/api';
+import { toast } from 'react-hot-toast';
 
 const PendingFees = () => {
   const [pendingFees, setPendingFees] = useState([]);
@@ -59,10 +60,10 @@ const PendingFees = () => {
       await feeApi.payInstallment(selectedFee._id, paymentData);
       await fetchPendingFees(pagination.currentPage, pagination.limit, searchTerm);
       setIsModalOpen(false);
-      alert('Payment processed successfully!');
+      toast.success('Payment processed successfully!');
     } catch (err) {
       console.error('Error paying installment:', err);
-      alert('Failed to process payment.');
+      toast.error('Failed to process payment.');
     } finally {
       setLoading(false);
     }

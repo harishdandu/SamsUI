@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Loader2, Save } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 const SubjectModal = ({ isOpen, onClose, onSave, subject = null }) => {
   const [loading, setLoading] = useState(false);
@@ -47,7 +48,7 @@ const SubjectModal = ({ isOpen, onClose, onSave, subject = null }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (formData.classes.length === 0) {
-      alert('Please select at least one class.');
+      toast.error('Please select at least one class.');
       return;
     }
     setLoading(true);

@@ -35,11 +35,24 @@ export const createStaff = async (req, res) => {
   }
 
   try {
-    // 0. Check for existing email (global uniqueness)
-    const existingStaff = await Staff.findOne({ email: staffData.email });
-    const existingUser = await User.findOne({ email: staffData.email });
-    if (existingStaff || existingUser) {
+    // Check for existing email (global uniqueness)
+    const existingStaffEmail = await Staff.findOne({ email: staffData.email });
+    const existingUserEmail = await User.findOne({ email: staffData.email });
+    if (existingStaffEmail || existingUserEmail) {
       return res.status(400).json({ message: 'Email is already in use by another staff member or user.' });
+    }
+
+    // Check for existing phone number (global uniqueness)
+    if (staffData.phone) {
+      const existingStaffPhone = await Staff.findOne({ 
+        $or: [{ phone: staffData.phone }, { phoneNumber: staffData.phone }] 
+      });
+      const existingUserPhone = await User.findOne({ 
+        $or: [{ phone: staffData.phone }, { phoneNumber: staffData.phone }] 
+      });
+      if (existingStaffPhone || existingUserPhone) {
+        return res.status(400).json({ message: 'Phone number is already in use by another staff member or user.' });
+      }
     }
 
     const newStaff = new Staff({ ...staffData, schoolId });
@@ -115,12 +128,25 @@ export const bulkRegisterStaff = async (req, res) => {
     const results = [];
     
     for (const staffData of staffsData) {
-      // 0. Check for existing email
-      const existingStaff = await Staff.findOne({ email: staffData.email });
-      const existingUser = await User.findOne({ email: staffData.email });
-      if (existingStaff || existingUser) {
+      // Check for existing email or phone
+      const existingStaffEmail = await Staff.findOne({ email: staffData.email });
+      const existingUserEmail = await User.findOne({ email: staffData.email });
+      if (existingStaffEmail || existingUserEmail) {
         console.log(`Skipping existing email: ${staffData.email}`);
         continue;
+      }
+
+      if (staffData.phone) {
+        const existingStaffPhone = await Staff.findOne({ 
+          $or: [{ phone: staffData.phone }, { phoneNumber: staffData.phone }] 
+        });
+        const existingUserPhone = await User.findOne({ 
+          $or: [{ phone: staffData.phone }, { phoneNumber: staffData.phone }] 
+        });
+        if (existingStaffPhone || existingUserPhone) {
+          console.log(`Skipping existing phone number: ${staffData.phone}`);
+          continue;
+        }
       }
 
       // 1. Handle Teacher role defaults

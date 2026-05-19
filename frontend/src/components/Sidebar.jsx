@@ -38,11 +38,11 @@ const Sidebar = () => {
     { name: 'Subjects', icon: <Book size={20} />, path: '/subjects', roles: ['super admin', 'admin'] },
     { name: 'Classes', icon: <Layers size={20} />, path: '/classes', roles: ['super admin', 'admin'] },
     { name: 'Syllabus', icon: <BookOpen size={20} />, path: '/syllabus', roles: ['teacher', 'admin'] },
-    { name: 'AI Test Gen', icon: <Sparkles size={20} />, path: '/test-gen', roles: ['teacher', 'admin'] },
+    { name: 'AI Test Gen', icon: <Sparkles size={20} />, path: '/test-gen', roles: ['teacher'] },
     { name: 'Accounting', icon: <BarChart3 size={20} />, path: '/accounting', roles: ['admin', 'accountant'] },
     { name: 'Leave Tracker', icon: <CalendarCheck size={20} />, path: '/leave-tracker', roles: ['hr', 'teacher', 'accountant', 'admin'] },
     { name: 'Track Leaves', icon: <CalendarCheck size={20} />, path: '/admin/leaves', roles: ['super admin', 'admin', 'hr'] },
-    { name: 'Profile', icon: <Users size={20} />, path: '/school-profile', roles: ['super admin',] },
+    { name: 'Profile', icon: <Users size={20} />, path: '/school-profile', roles: ['super admin','admin', 'hr', 'teacher', 'accountant' ] },
   ];
 
   const filteredItems = menuItems.filter(item => {

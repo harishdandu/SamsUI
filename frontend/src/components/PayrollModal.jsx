@@ -61,7 +61,7 @@ const PayrollModal = ({ isOpen, onClose, staff }) => {
       const [m, y] = selectedMonth.split('-');
       const res = await payrollApi.generate({
         staffId: staff._id,
-        baseSalary: staff.salary || 0,
+        baseSalary: staff.salary?.base || 0,
         unpaidDays: unpaidDays,
         salaryDeduction: parseFloat(deduction.toFixed(2)),
         netSalary: parseFloat(netPayable.toFixed(2)),
@@ -138,9 +138,9 @@ const PayrollModal = ({ isOpen, onClose, staff }) => {
   const [m, y] = selectedMonth.split('-');
   const workingDays = selectedMonth ? calculateWorkingDays(parseInt(m), parseInt(y)) : 0;
   const unpaidDays = leaveSummary['Unpaid Leave'] || 0;
-  const perDaySalary = workingDays > 0 ? (staff?.salary || 0) / workingDays : 0;
+  const perDaySalary = workingDays > 0 ? (staff?.salary?.base || 0) / workingDays : 0;
   const deduction = perDaySalary * unpaidDays;
-  const netPayable = (staff?.salary || 0) - deduction;
+  const netPayable = (staff?.salary?.base || 0) - deduction;
 
   if (!isOpen) return null;
 
@@ -215,7 +215,7 @@ const PayrollModal = ({ isOpen, onClose, staff }) => {
             )}
             <div className="detail-row">
               <span>Base Salary</span>
-              <strong>INR{existingPayroll ? existingPayroll.baseSalary : (staff?.salary || 0)}</strong>
+              <strong>INR{existingPayroll ? existingPayroll.baseSalary : (staff?.salary?.base || 0)}</strong>
             </div>
             <div className="detail-row">
               <span>Working Days (Excl. Sun)</span>

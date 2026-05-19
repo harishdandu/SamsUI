@@ -843,8 +843,10 @@ export const getSyllabusByClass = async (req, res) => {
 
     let query = { classId, schoolId };
     
-    // If it's a teacher, get the syllabus specifically for their subject if applicable
-    if (req.user.role === 'Teacher' && req.user.staffId) {
+    // Prioritize query param subjectId if provided
+    if (subjectId) {
+      query.subjectId = subjectId;
+    } else if (req.user.role === 'Teacher' && req.user.staffId) {
       const classDoc = await Class.findById(classId);
       if (classDoc) {
         const staff = await Staff.findById(req.user.staffId).populate('teachingSubjects.subjectId');
@@ -855,9 +857,6 @@ export const getSyllabusByClass = async (req, res) => {
           }
         }
       }
-    } else if (subjectId) {
-      // If Admin and subjectId provided, filter by it
-      query.subjectId = subjectId;
     }
 
     const syllabus = await Syllabus.findOne(query).populate('addedBy', 'username email');

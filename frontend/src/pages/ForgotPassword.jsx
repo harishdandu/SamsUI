@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { GraduationCap, Mail, ShieldCheck, Lock, Loader2, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -30,12 +31,14 @@ const ForgotPassword = () => {
 
       if (response.ok) {
         setStep(2);
-        setSuccess('OTP has been sent to your email.');
+        toast.success('OTP has been sent to your email.');
       } else {
         setError(data.message || 'Failed to send OTP');
+        toast.error(data.message || 'Failed to send OTP');
       }
     } catch (err) {
       setError('Connection error. Please try again.');
+      toast.error('Connection error. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -44,9 +47,11 @@ const ForgotPassword = () => {
   const handleResetPassword = async (e) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
+      toast.error('Passwords do not match');
       return setError('Passwords do not match');
     }
     if (newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters long');
       return setError('Password must be at least 6 characters long');
     }
 
@@ -64,13 +69,15 @@ const ForgotPassword = () => {
       const data = await response.json();
 
       if (response.ok) {
-        setSuccess('Password reset successfully! Redirecting to login...');
+        toast.success('Password reset successfully! Redirecting to login...');
         setTimeout(() => navigate('/login'), 3000);
       } else {
         setError(data.message || 'Failed to reset password');
+        toast.error(data.message || 'Failed to reset password');
       }
     } catch (err) {
       setError('Connection error. Please try again.');
+      toast.error('Connection error. Please try again.');
     } finally {
       setLoading(false);
     }
