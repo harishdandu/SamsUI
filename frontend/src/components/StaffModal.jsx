@@ -22,11 +22,12 @@ const StaffModal = ({ isOpen, onClose, onSave, staffMember = null }) => {
     sickLeaves: 0,
     otherLeaves: 0
   });
-  
   const [availableSubjects, setAvailableSubjects] = useState([]);
+  const [loadingSubjects, setLoadingSubjects] = useState(true);
 
   useEffect(() => {
     if (isOpen) {
+      setLoadingSubjects(true);
       fetchSubjects();
     }
   }, [isOpen]);
@@ -38,14 +39,16 @@ const StaffModal = ({ isOpen, onClose, onSave, staffMember = null }) => {
       setAvailableSubjects(res.data);
     } catch (err) {
       console.error('Error fetching subjects:', err);
+    } finally {
+      setLoadingSubjects(false);
     }
   };
 
   useEffect(() => {
-    if (isOpen && formData.role === 'Teacher' && availableSubjects.length === 0) {
+    if (isOpen && !loadingSubjects && formData.role === 'Teacher' && availableSubjects.length === 0) {
       toast.error('Subjects are not added');
     }
-  }, [formData.role, availableSubjects, isOpen]);
+  }, [formData.role, availableSubjects, isOpen, loadingSubjects]);
 
   useEffect(() => {
     if (staffMember) {
@@ -179,10 +182,15 @@ const StaffModal = ({ isOpen, onClose, onSave, staffMember = null }) => {
                 <option value="HR">HR</option>
               </select>
             </div>
-            {formData.role === 'Teacher' && (
+             {formData.role === 'Teacher' && (
               <div className="form-group">
                 <label className="form-label">Subject</label>
-                {availableSubjects.length === 0 ? (
+                {loadingSubjects ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
+                    <Loader2 size={16} className="animate-spin" />
+                    <span>Loading subjects...</span>
+                  </div>
+                ) : availableSubjects.length === 0 ? (
                   <div className="subject-error-msg" style={{ color: 'var(--danger)', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.25rem', marginTop: '0.5rem', fontWeight: 600 }}>
                     <AlertCircle size={16} />
                     <span>Subjects are not added</span>
