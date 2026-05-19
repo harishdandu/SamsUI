@@ -40,10 +40,6 @@ const BulkStaffUploadModal = ({ isOpen, onClose, onUploadComplete }) => {
         setError('Please upload a valid Excel file (.xlsx or .xls)');
         return;
       }
-      if (selectedFile.size > 8 * 1024 * 1024) {
-        setError('File size exceeds the 8MB limit. Please upload a smaller file.');
-        return;
-      }
       setFile(selectedFile);
       setError(null);
       parseFile(selectedFile);
@@ -369,7 +365,7 @@ const BulkStaffUploadModal = ({ isOpen, onClose, onUploadComplete }) => {
                 disabled={loading || staffData.length === 0 || hasDuplicates}
               >
                 {loading ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle2 size={18} />}
-                {loading ? 'Registering...' : 'Register All Staff'}
+                {loading ? 'Registering...' : 'Register'}
               </button>
             )}
           </div>

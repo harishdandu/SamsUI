@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, UserPlus, MoreVertical, Filter, Loader2, Edit, Trash2, Upload } from 'lucide-react';
-import { studentApi } from '../utils/api';
+import { studentApi, classApi, staffApi } from '../utils/api';
 import StudentModal from '../components/StudentModal';
 import BulkUploadModal from '../components/BulkUploadModal';
 import { useAuth } from '../context/AuthContext';
@@ -16,25 +16,98 @@ const Students = () => {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [actionMenuId, setActionMenuId] = useState(null);
   
+  // Filtering States
+  const [selectedClass, setSelectedClass] = useState('');
+  const [selectedSection, setSelectedSection] = useState('');
+  const [classesList, setClassesList] = useState([]);
+  const [sectionsList, setSectionsList] = useState([]);
+  const [classesConfig, setClassesConfig] = useState([]);
+  const [filtersInitialized, setFiltersInitialized] = useState(false);
+
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalStudents, setTotalStudents] = useState(0);
   const [limit, setLimit] = useState(10);
 
-  const isAdmin = user?.role?.toLowerCase() === 'admin';
+  const isAdmin = user?.role?.toLowerCase() === 'admin' || user?.role?.toLowerCase() === 'super admin';
+  const isTeacher = user?.role?.toLowerCase() === 'teacher';
 
+  // Load class configurations and filters on user mount
   useEffect(() => {
+    if (user) {
+      fetchFiltersData();
+    }
+  }, [user]);
+
+  const fetchFiltersData = async () => {
+    try {
+      const classRes = await classApi.getAll({ schoolId: user?.schoolId });
+      const configs = classRes.data || [];
+      setClassesConfig(configs);
+
+      const userRole = user?.role?.toLowerCase();
+
+      if (userRole === 'teacher' && user?.staffId) {
+        // Teacher logic: show only the classes which are assigned to that teacher
+        const staffRes = await staffApi.getById(user.staffId);
+        const teachingSubs = staffRes.data.teachingSubjects || [];
+        const teacherClassNames = [...new Set(teachingSubs.flatMap(ts => ts.classes))];
+        setClassesList(teacherClassNames);
+
+        // Smart Defaulting for Teacher
+        if (teacherClassNames.length > 0) {
+          const defClass = teacherClassNames[0];
+          setSelectedClass(defClass);
+          
+          const classObj = configs.find(c => c.name === defClass);
+          if (classObj && classObj.sections && classObj.sections.length > 0) {
+            setSelectedSection(classObj.sections[0]);
+          }
+        }
+      } else {
+        // Admin or Super Admin logic: classes 1 to 10
+        const adminClasses = Array.from({ length: 10 }, (_, i) => (i + 1).toString());
+        setClassesList(adminClasses);
+
+        // Smart Defaulting for Admin/Super Admin (Default to Class 1, Section A or first section of Class 1)
+        setSelectedClass('1');
+        const classObj = configs.find(c => c.name === '1');
+        if (classObj && classObj.sections && classObj.sections.length > 0) {
+          setSelectedSection(classObj.sections[0]);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching filter data:', err);
+    } finally {
+      setFiltersInitialized(true);
+    }
+  };
+
+  // Populate sections when selected class changes
+  useEffect(() => {
+    if (selectedClass) {
+      const classObj = classesConfig.find(c => c.name === selectedClass);
+      if (classObj) {
+        setSectionsList(classObj.sections || []);
+      } else {
+        setSectionsList([]);
+      }
+    } else {
+      setSectionsList([]);
+    }
+  }, [selectedClass, classesConfig]);
+
+  // Single debounced hook for search, page, limit, and class/section filters
+  useEffect(() => {
+    if (!filtersInitialized) return;
+
     const delayDebounceFn = setTimeout(() => {
-      fetchStudents(1); // Reset to page 1 on search
-    }, 500);
+      fetchStudents(currentPage);
+    }, 300);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm]);
-
-  useEffect(() => {
-    fetchStudents(currentPage);
-  }, [currentPage, limit]);
+  }, [currentPage, limit, searchTerm, selectedClass, selectedSection, filtersInitialized]);
 
   const fetchStudents = async (page = currentPage) => {
     try {
@@ -43,7 +116,9 @@ const Students = () => {
         page, 
         limit,
         search: searchTerm,
-        schoolId: user?.schoolId
+        schoolId: user?.schoolId,
+        class: selectedClass || undefined,
+        section: selectedSection || undefined
       });
       
       const { students: studentList, total, totalPages: pages } = response.data;
@@ -98,6 +173,17 @@ const Students = () => {
     }
   };
 
+  const handleClassChange = (val) => {
+    setSelectedClass(val);
+    setSelectedSection('');
+    setCurrentPage(1);
+  };
+
+  const handleSectionChange = (val) => {
+    setSelectedSection(val);
+    setCurrentPage(1);
+  };
+
   const openAddModal = () => {
     if (!isAdmin) return;
     setSelectedStudent(null);
@@ -139,9 +225,38 @@ const Students = () => {
             type="text" 
             placeholder="Search by name or roll number..." 
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
           />
         </div>
+
+        <div className="filter-dropdowns">
+          <select 
+            value={selectedClass} 
+            onChange={(e) => handleClassChange(e.target.value)}
+            className="filter-select"
+          >
+            {!isTeacher && <option value="">All Classes</option>}
+            {classesList.map(c => (
+              <option key={c} value={c}>Class {c}</option>
+            ))}
+          </select>
+
+          <select 
+            value={selectedSection} 
+            onChange={(e) => handleSectionChange(e.target.value)}
+            className="filter-select"
+            disabled={!selectedClass}
+          >
+            {!isTeacher && <option value="">All Sections</option>}
+            {sectionsList.map(s => (
+              <option key={s} value={s}>Section {s}</option>
+            ))}
+          </select>
+        </div>
+
         <div className="limit-selector">
           <span>Rows per page:</span>
           <select 
@@ -278,7 +393,39 @@ const Students = () => {
         .header-left p { color: var(--text-secondary); }
         
         .table-actions {
-          display: flex; gap: 1rem; margin-bottom: 1.5rem; padding: 1rem;
+          display: flex; gap: 1rem; margin-bottom: 1.5rem; padding: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;
+        }
+        
+        .filter-dropdowns {
+          display: flex;
+          gap: 0.75rem;
+          align-items: center;
+        }
+        
+        .filter-select {
+          padding: 0.45rem 1rem;
+          border-radius: var(--radius);
+          border: 1px solid var(--border);
+          background: white;
+          color: var(--text-primary);
+          cursor: pointer;
+          outline: none;
+          font-family: inherit;
+          font-size: 0.875rem;
+          transition: var(--transition);
+          min-width: 140px;
+          font-weight: 500;
+        }
+        
+        .filter-select:focus {
+          border-color: var(--primary);
+          box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+        
+        .filter-select:disabled {
+          background: #f1f5f9;
+          color: #94a3b8;
+          cursor: not-allowed;
         }
         
         .search-box {

@@ -24,6 +24,14 @@ export const getAllStudents = async (req, res) => {
       ];
     }
 
+    // Class and Section Filters
+    if (req.query.class) {
+      query.class = req.query.class;
+    }
+    if (req.query.section) {
+      query.section = req.query.section;
+    }
+
     // Role-based filtering for teachers (only show students in their assigned classes)
     if (req.user.role === 'Teacher' && req.user.staffId) {
       const staffMember = await Staff.findById(req.user.staffId);
@@ -33,7 +41,15 @@ export const getAllStudents = async (req, res) => {
         )];
         
         if (assignedClasses.length > 0) {
-          query.class = { $in: assignedClasses };
+          if (req.query.class) {
+            if (assignedClasses.includes(req.query.class)) {
+              query.class = req.query.class;
+            } else {
+              return res.status(200).json({ students: [], total: 0, page: 1, totalPages: 0 });
+            }
+          } else {
+            query.class = { $in: assignedClasses };
+          }
         } else {
           return res.status(200).json({ students: [], total: 0, page: 1, totalPages: 0 });
         }

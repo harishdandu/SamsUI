@@ -28,9 +28,9 @@ const Sidebar = () => {
 
   const menuItems = [
     { name: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/' },
-    { name: 'Students', icon: <Users size={20} />, path: '/students', roles: [ 'admin', 'teacher'] },
+    { name: 'Students', icon: <Users size={20} />, path: '/students', roles: [ 'admin', 'teacher', 'super admin'] },
     { name: 'Staff', icon: <Users size={20} />, path: '/staff', roles: ['super admin', 'admin', 'hr'] },
-    { name: 'Staff Payroll', icon: <CalendarCheck size={20} />, path: '/staff-payroll', roles: ['super admin', 'admin', 'accountant'], visibleAfter: 25 },
+    // { name: 'Staff Payroll', icon: <CalendarCheck size={20} />, path: '/staff-payroll', roles: ['super admin', 'admin', 'accountant'], visibleAfter: 25 },
     { name: 'Attendance', icon: <CalendarCheck size={20} />, path: '/attendance', roles: ['admin', 'teacher'] },
     { name: 'Fees', icon: <CreditCard size={20} />, path: '/fees', roles: ['admin','accountant'] },
     { name: 'Pending Fees', icon: <Clock size={20} />, path: '/pending-fees', roles: ['admin','accountant'] },

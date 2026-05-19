@@ -3,6 +3,7 @@ import { X, Save, Loader2 } from 'lucide-react';
 import { classApi } from '../utils/api';
 
 const StudentModal = ({ isOpen, onClose, onSave, student = null }) => {
+  const isEdit = !!student;
   const initialState = {
     firstName: '',
     lastName: '',
@@ -273,6 +274,7 @@ const StudentModal = ({ isOpen, onClose, onSave, student = null }) => {
                 value={formData.fees}
                 onChange={handleChange}
                 required 
+                disabled={isEdit}
               />
             </div>
             <div className="form-group">
@@ -284,6 +286,7 @@ const StudentModal = ({ isOpen, onClose, onSave, student = null }) => {
                 value={formData.firstInstallmentAmount}
                 onChange={handleChange}
                 required 
+                disabled={isEdit}
               />
             </div>
             <div className="form-group">
@@ -293,6 +296,7 @@ const StudentModal = ({ isOpen, onClose, onSave, student = null }) => {
                 className="form-input" 
                 value={formData.paymentMethod}
                 onChange={handleChange}
+                disabled={isEdit}
               >
                 <option value="UPI">UPI</option>
                 <option value="CASH">CASH</option>
@@ -311,6 +315,7 @@ const StudentModal = ({ isOpen, onClose, onSave, student = null }) => {
                       value={freq}
                       checked={formData.feeFrequency === freq}
                       onChange={handleChange}
+                      disabled={isEdit}
                     />
                     <span>{freq}</span>
                   </label>
@@ -327,6 +332,7 @@ const StudentModal = ({ isOpen, onClose, onSave, student = null }) => {
                 value={formData.tuitionStartDate}
                 onChange={handleChange}
                 required 
+                disabled={isEdit}
               />
             </div>
             <div className="form-group">
@@ -338,6 +344,7 @@ const StudentModal = ({ isOpen, onClose, onSave, student = null }) => {
                 value={formData.tuitionEndDate}
                 onChange={handleChange}
                 required 
+                disabled={isEdit}
               />
             </div>
           </div>
@@ -459,6 +466,12 @@ const StudentModal = ({ isOpen, onClose, onSave, student = null }) => {
           margin-bottom: -2rem;
           padding-bottom: 2rem;
           z-index: 10;
+        .form-input:disabled {
+          background-color: #f1f5f9;
+          color: #64748b;
+          border-color: #e2e8f0;
+          cursor: not-allowed;
+          opacity: 0.8;
         }
       `}</style>
     </div>
