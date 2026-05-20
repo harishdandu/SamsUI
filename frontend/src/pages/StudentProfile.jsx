@@ -72,6 +72,16 @@ const StudentProfile = () => {
   const pendingFees = Math.max(0, totalFees - paidFees);
   const paidPercent = totalFees > 0 ? Math.round((paidFees / totalFees) * 100) : 0;
 
+  // Group marks by testName
+  const groupedMarks = examMarks.reduce((groups, mark) => {
+    const testName = mark.testName || 'Other Tests';
+    if (!groups[testName]) {
+      groups[testName] = [];
+    }
+    groups[testName].push(mark);
+    return groups;
+  }, {});
+
   const getStatusBadgeClass = (status) => {
     switch (status?.toLowerCase()) {
       case 'active': return 'badge-active';
@@ -214,46 +224,72 @@ const StudentProfile = () => {
               <p>No recorded exam or test marks found for this student.</p>
             </div>
           ) : (
-            <div className="scores-table-container">
-              <table className="scores-table">
-                <thead>
-                  <tr>
-                    <th>Exam / Test Name</th>
-                    <th>Subject Name</th>
-                    <th>Exam Date</th>
-                    <th>Max Marks</th>
-                    <th>Score Obtained</th>
-                    <th>Percentage</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {examMarks.map((mark) => {
-                    const pct = Math.round((mark.marksObtained / mark.totalMarks) * 100);
-                    let colorClass = 'pct-high';
-                    if (pct < 40) colorClass = 'pct-low';
-                    else if (pct < 75) colorClass = 'pct-mid';
+            <div className="test-groups-container">
+              {Object.keys(groupedMarks).map((testName) => {
+                const marks = groupedMarks[testName];
+                const totalObtained = marks.reduce((sum, m) => sum + m.marksObtained, 0);
+                const totalMax = marks.reduce((sum, m) => sum + m.totalMarks, 0);
+                const averagePct = totalMax > 0 ? Math.round((totalObtained / totalMax) * 100) : 0;
+                
+                let avgColorClass = 'pct-high';
+                if (averagePct < 40) avgColorClass = 'pct-low';
+                else if (averagePct < 75) avgColorClass = 'pct-mid';
 
-                    return (
-                      <tr key={mark._id}>
-                        <td><strong>{mark.testName}</strong></td>
-                        <td>{mark.subjectName}</td>
-                        <td>
-                          {new Date(mark.examDate).toLocaleDateString('en-IN', {
-                            dateStyle: 'medium'
+                return (
+                  <div key={testName} className="test-group-card">
+                    <div className="test-group-header">
+                      <div className="test-group-title">
+                        <h3>{testName}</h3>
+                        <span className="test-count-badge">{marks.length} {marks.length === 1 ? 'Subject' : 'Subjects'}</span>
+                      </div>
+                      <div className="test-group-summary">
+                        <span className="summary-label">Average Performance:</span>
+                        <span className={`pct-tag ${avgColorClass}`}>{averagePct}%</span>
+                      </div>
+                    </div>
+                    
+                    <div className="scores-table-container">
+                      <table className="scores-table">
+                        <thead>
+                          <tr>
+                            <th>Subject Name</th>
+                            <th>Exam Conducted Date</th>
+                            <th>Max Marks</th>
+                            <th>Score Obtained</th>
+                            <th>Percentage</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {marks.map((mark) => {
+                            const pct = Math.round((mark.marksObtained / mark.totalMarks) * 100);
+                            let colorClass = 'pct-high';
+                            if (pct < 40) colorClass = 'pct-low';
+                            else if (pct < 75) colorClass = 'pct-mid';
+
+                            return (
+                              <tr key={mark._id}>
+                                <td><strong>{mark.subjectName}</strong></td>
+                                <td>
+                                  {new Date(mark.examDate).toLocaleDateString('en-IN', {
+                                    dateStyle: 'medium'
+                                  })}
+                                </td>
+                                <td>{mark.totalMarks}</td>
+                                <td><strong>{mark.marksObtained}</strong></td>
+                                <td>
+                                  <span className={`pct-tag ${colorClass}`}>
+                                    {pct}%
+                                  </span>
+                                </td>
+                              </tr>
+                            );
                           })}
-                        </td>
-                        <td>{mark.totalMarks}</td>
-                        <td><strong>{mark.marksObtained}</strong></td>
-                        <td>
-                          <span className={`pct-tag ${colorClass}`}>
-                            {pct}%
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </section>
@@ -538,10 +574,65 @@ const StudentProfile = () => {
           margin-bottom: 1rem;
         }
         
-        .scores-table-container {
-          overflow-x: auto;
+        .test-groups-container {
+          display: flex;
+          flex-direction: column;
+          gap: 1.75rem;
+        }
+
+        .test-group-card {
           border: 1px solid var(--border);
           border-radius: 0.75rem;
+          overflow: hidden;
+          background: white;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+        
+        .test-group-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 1rem 1.25rem;
+          background: #f8fafc;
+          border-bottom: 1px solid var(--border);
+        }
+        
+        .test-group-title {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+        }
+        
+        .test-group-title h3 {
+          margin: 0;
+          font-size: 1.1rem;
+          font-weight: 700;
+          color: var(--text-primary);
+        }
+        
+        .test-count-badge {
+          background: #eef2ff;
+          color: var(--primary);
+          padding: 0.15rem 0.45rem;
+          border-radius: 0.25rem;
+          font-size: 0.75rem;
+          font-weight: 600;
+        }
+        
+        .test-group-summary {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+        
+        .summary-label {
+          font-size: 0.85rem;
+          color: var(--text-secondary);
+          font-weight: 500;
+        }
+
+        .scores-table-container {
+          overflow-x: auto;
         }
         
         .scores-table {
