@@ -111,10 +111,12 @@ export const syllabusApi = {
 export const examMarkApi = {
   create: (data) => api.post('/exam-marks', data),
   getAll: (params) => api.get('/exam-marks', { params }),
+  update: (id, data) => api.put(`/exam-marks/${id}`, data),
 };
 
 export const classTeacherApi = {
   getAll: (params) => api.get('/class-teachers', { params }),
+  verifyStudent: (params) => api.get('/class-teachers/verify-student', { params }),
   assign: (data) => api.post('/class-teachers', data),
   unassign: (id) => api.delete(`/class-teachers/${id}`),
   getEligible: (params) => api.get('/class-teachers/eligible-teachers', { params }),

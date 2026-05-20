@@ -1,36 +1,63 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Phone, Award, CreditCard, CalendarCheck, Loader2, Calendar, FileText, CheckCircle2, AlertTriangle, HelpCircle } from 'lucide-react';
-import { studentApi, examMarkApi } from '../utils/api';
+import { ArrowLeft, User, Phone, Award, CreditCard, CalendarCheck, Loader2, Calendar, FileText, CheckCircle2, AlertTriangle, HelpCircle, Edit3 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { studentApi, examMarkApi, classTeacherApi } from '../utils/api';
+import MarksEntryModal from '../components/MarksEntryModal';
 import toast from 'react-hot-toast';
 
 const StudentProfile = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [student, setStudent] = useState(null);
   const [examMarks, setExamMarks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isClassTeacher, setIsClassTeacher] = useState(false);
+  const [selectedMark, setSelectedMark] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  const loadStudentProfile = async () => {
+    try {
+      setLoading(true);
+      // Fetch student details
+      const studentRes = await studentApi.getById(id);
+      setStudent(studentRes.data);
+
+      // Fetch exam marks
+      const marksRes = await examMarkApi.getAll({ studentId: id });
+      setExamMarks(marksRes.data || []);
+    } catch (err) {
+      console.error('Error fetching student profile:', err);
+      toast.error('Failed to load student profile details.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        // Fetch student details
-        const studentRes = await studentApi.getById(id);
-        setStudent(studentRes.data);
+    if (id) loadStudentProfile();
+  }, [id]);
 
-        // Fetch exam marks
-        const marksRes = await examMarkApi.getAll({ studentId: id });
-        setExamMarks(marksRes.data || []);
+  useEffect(() => {
+    const verifyAccess = async () => {
+      if (!id || !user) return;
+      if (user.role?.toLowerCase() !== 'teacher') {
+        setIsClassTeacher(false);
+        return;
+      }
+
+      try {
+        const response = await classTeacherApi.verifyStudent({ studentId: id });
+        setIsClassTeacher(!!response.data?.isClassTeacher);
       } catch (err) {
-        console.error('Error fetching student profile:', err);
-        toast.error('Failed to load student profile details.');
-      } finally {
-        setLoading(false);
+        console.warn('Class teacher verification failed:', err);
+        setIsClassTeacher(false);
       }
     };
-    fetchData();
-  }, [id]);
+
+    verifyAccess();
+  }, [id, user]);
 
   if (loading) {
     return (
@@ -71,6 +98,7 @@ const StudentProfile = () => {
   const paidFees = student.fees?.paid || 0;
   const pendingFees = Math.max(0, totalFees - paidFees);
   const paidPercent = totalFees > 0 ? Math.round((paidFees / totalFees) * 100) : 0;
+  const canEditMarks = isClassTeacher || ['admin', 'super admin'].includes(user?.role?.toLowerCase());
 
   // Group marks by testName
   const groupedMarks = examMarks.reduce((groups, mark) => {
@@ -257,6 +285,7 @@ const StudentProfile = () => {
                             <th>Max Marks</th>
                             <th>Score Obtained</th>
                             <th>Percentage</th>
+                            {canEditMarks && <th>Action</th>}
                           </tr>
                         </thead>
                         <tbody>
@@ -281,6 +310,20 @@ const StudentProfile = () => {
                                     {pct}%
                                   </span>
                                 </td>
+                                {canEditMarks && (
+                                  <td>
+                                    <button
+                                      className="btn-icon"
+                                      onClick={() => {
+                                        setSelectedMark(mark);
+                                        setIsEditModalOpen(true);
+                                      }}
+                                      title="Edit Exam Mark"
+                                    >
+                                      <Edit3 size={16} color="var(--text-secondary)" />
+                                    </button>
+                                  </td>
+                                )}
                               </tr>
                             );
                           })}
@@ -294,6 +337,17 @@ const StudentProfile = () => {
           )}
         </section>
       </div>
+
+      <MarksEntryModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedMark(null);
+        }}
+        student={student}
+        mark={selectedMark}
+        onSave={loadStudentProfile}
+      />
 
       <style>{`
         .student-profile-page {

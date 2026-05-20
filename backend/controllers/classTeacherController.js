@@ -1,6 +1,7 @@
 import ClassTeacher from '../models/ClassTeacher.js';
 import Class from '../models/Class.js';
 import Staff from '../models/Staff.js';
+import Student from '../models/Student.js';
 
 /**
  * Get all class teacher configurations for the school
@@ -168,6 +169,46 @@ export const getEligibleTeachers = async (req, res) => {
     });
 
     res.status(200).json(eligibleTeachers);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const verifyClassTeacherForStudent = async (req, res) => {
+  try {
+    const { studentId } = req.query;
+    if (!studentId) {
+      return res.status(400).json({ message: 'studentId is required.' });
+    }
+
+    const schoolId = req.user.schoolId;
+    if (!schoolId) {
+      return res.status(400).json({ message: 'School ID is required.' });
+    }
+
+    if (req.user.role !== 'Teacher') {
+      return res.status(200).json({ isClassTeacher: false });
+    }
+
+    const student = await Student.findOne({ _id: studentId, schoolId });
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found.' });
+    }
+
+    const classDoc = await Class.findOne({ name: student.class, schoolId });
+    if (!classDoc) {
+      return res.status(200).json({ isClassTeacher: false });
+    }
+
+    const teacherId = req.user.staffId || req.user._id;
+    const isClassTeacher = await ClassTeacher.exists({
+      schoolId,
+      classId: classDoc._id,
+      section: student.section,
+      teacherId
+    });
+
+    res.status(200).json({ isClassTeacher: !!isClassTeacher });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

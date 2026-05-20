@@ -3,7 +3,8 @@ import {
   getAllClassTeachers, 
   assignClassTeacher, 
   unassignClassTeacher, 
-  getEligibleTeachers 
+  getEligibleTeachers,
+  verifyClassTeacherForStudent
 } from '../controllers/classTeacherController.js';
 import { protect, restrictTo } from '../middleware/auth.js';
 
@@ -14,6 +15,7 @@ router.use(protect);
 
 // Get all class teachers (accessible by authenticated users, e.g. teachers/HR to view)
 router.get('/', getAllClassTeachers);
+router.get('/verify-student', verifyClassTeacherForStudent);
 
 // Management routes (restricted to Admin and Super Admin)
 router.post('/', restrictTo('Super Admin', 'Admin'), assignClassTeacher);

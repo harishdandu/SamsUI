@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { subjectApi, staffApi, examMarkApi } from '../utils/api';
 import toast from 'react-hot-toast';
 
-const MarksEntryModal = ({ isOpen, onClose, student }) => {
+const MarksEntryModal = ({ isOpen, onClose, student, mark = null, onSave }) => {
   const { user } = useAuth();
   const [testName, setTestName] = useState('Slip Test1');
   const [totalMarks, setTotalMarks] = useState(100);
@@ -17,6 +17,8 @@ const MarksEntryModal = ({ isOpen, onClose, student }) => {
 
   const isAdmin = user?.role?.toLowerCase() === 'admin' || user?.role?.toLowerCase() === 'super admin';
   const isTeacher = user?.role?.toLowerCase() === 'teacher';
+  const isEdit = !!mark;
+  const isTeacherEdit = isEdit && isTeacher;
 
   const testOptions = [
     'Slip Test1',
@@ -31,54 +33,66 @@ const MarksEntryModal = ({ isOpen, onClose, student }) => {
   ];
 
   useEffect(() => {
-    if (isOpen && user) {
-      // Reset form states
+    if (!isOpen || !user) return;
+
+    const resetForm = () => {
       setTestName('Slip Test1');
       setTotalMarks(100);
       setMarksObtained('');
       setExamDate(new Date().toISOString().split('T')[0]);
+      setSubjectName('');
+      setSubjectsList([]);
+    };
 
-      if (isTeacher) {
-        // Teacher logic: fetch teacher's assigned subjects from staff profile
-        if (user.staffId) {
-          setFetchingSubjects(true);
-          staffApi.getById(user.staffId)
-            .then(res => {
-              const teachingSubs = res.data.teachingSubjects || [];
-              if (teachingSubs.length > 0 && teachingSubs[0].subjectId) {
-                // Populate the first subject
-                setSubjectName(teachingSubs[0].subjectId.name || '');
-              }
-            })
-            .catch(err => {
-              console.error('Error fetching teacher subjects:', err);
-              toast.error('Failed to load assigned subjects.');
-            })
-            .finally(() => {
-              setFetchingSubjects(false);
-            });
-        }
-      } else {
-        // Admin logic: fetch all subjects
+    if (isEdit && mark) {
+      setTestName(mark.testName || 'Slip Test1');
+      setTotalMarks(mark.totalMarks || 100);
+      setMarksObtained(mark.marksObtained ?? '');
+      setSubjectName(mark.subjectName || '');
+      setExamDate(mark.examDate ? new Date(mark.examDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
+      setFetchingSubjects(false);
+      return;
+    }
+
+    resetForm();
+
+    if (isTeacher) {
+      if (user.staffId) {
         setFetchingSubjects(true);
-        subjectApi.getAll({ schoolId: user.schoolId })
+        staffApi.getById(user.staffId)
           .then(res => {
-            const list = res.data || [];
-            setSubjectsList(list);
-            if (list.length > 0) {
-              setSubjectName(list[0].name || '');
+            const teachingSubs = res.data.teachingSubjects || [];
+            if (teachingSubs.length > 0 && teachingSubs[0].subjectId) {
+              setSubjectName(teachingSubs[0].subjectId.name || '');
             }
           })
           .catch(err => {
-            console.error('Error fetching subjects:', err);
-            toast.error('Failed to load school subjects.');
+            console.error('Error fetching teacher subjects:', err);
+            toast.error('Failed to load assigned subjects.');
           })
           .finally(() => {
             setFetchingSubjects(false);
           });
       }
+    } else {
+      setFetchingSubjects(true);
+      subjectApi.getAll({ schoolId: user.schoolId })
+        .then(res => {
+          const list = res.data || [];
+          setSubjectsList(list);
+          if (list.length > 0) {
+            setSubjectName(list[0].name || '');
+          }
+        })
+        .catch(err => {
+          console.error('Error fetching subjects:', err);
+          toast.error('Failed to load school subjects.');
+        })
+        .finally(() => {
+          setFetchingSubjects(false);
+        });
     }
-  }, [isOpen, user]);
+  }, [isOpen, user, isEdit, mark]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -104,7 +118,7 @@ const MarksEntryModal = ({ isOpen, onClose, student }) => {
 
     try {
       setLoading(true);
-      await examMarkApi.create({
+      const payload = {
         studentId: student._id,
         className: student.class,
         testName,
@@ -112,9 +126,23 @@ const MarksEntryModal = ({ isOpen, onClose, student }) => {
         marksObtained: obtainedNum,
         subjectName,
         examDate
-      });
+      };
+      if (isTeacherEdit) {
+        payload.testName = undefined;
+        payload.totalMarks = undefined;
+        payload.subjectName = undefined;
+        payload.examDate = undefined;
+      }
 
-      toast.success('Exam marks saved successfully!');
+      if (isEdit && mark && mark._id) {
+        await examMarkApi.update(mark._id, payload);
+        toast.success('Exam marks updated successfully!');
+      } else {
+        await examMarkApi.create(payload);
+        toast.success('Exam marks saved successfully!');
+      }
+
+      onSave?.();
       onClose();
     } catch (err) {
       console.error('Error saving exam marks:', err);
@@ -158,6 +186,7 @@ const MarksEntryModal = ({ isOpen, onClose, student }) => {
                   value={testName}
                   onChange={(e) => setTestName(e.target.value)}
                   required
+                  disabled={isTeacherEdit}
                 >
                   {testOptions.map(opt => (
                     <option key={opt} value={opt}>{opt}</option>
@@ -167,7 +196,7 @@ const MarksEntryModal = ({ isOpen, onClose, student }) => {
 
               <div className="form-group">
                 <label className="form-label">Subject Name</label>
-                {isTeacher ? (
+                {(isTeacher && !isEdit) ? (
                   <input
                     type="text"
                     className="form-input"
@@ -176,20 +205,15 @@ const MarksEntryModal = ({ isOpen, onClose, student }) => {
                     required
                   />
                 ) : (
-                  <select
+                  <input
+                    type="text"
                     className="form-input"
                     value={subjectName}
                     onChange={(e) => setSubjectName(e.target.value)}
                     required
-                  >
-                    {subjectsList.length === 0 ? (
-                      <option value="">No subjects found</option>
-                    ) : (
-                      subjectsList.map(sub => (
-                        <option key={sub._id} value={sub.name}>{sub.name}</option>
-                      ))
-                    )}
-                  </select>
+                    placeholder="Enter subject name"
+                    disabled={isTeacherEdit}
+                  />
                 )}
               </div>
 
@@ -202,6 +226,7 @@ const MarksEntryModal = ({ isOpen, onClose, student }) => {
                   onChange={(e) => setTotalMarks(e.target.value)}
                   min={1}
                   required
+                  disabled={isTeacherEdit}
                 />
               </div>
 
@@ -227,6 +252,7 @@ const MarksEntryModal = ({ isOpen, onClose, student }) => {
                   value={examDate}
                   onChange={(e) => setExamDate(e.target.value)}
                   required
+                  disabled={isTeacherEdit}
                 />
               </div>
             </div>
@@ -237,7 +263,7 @@ const MarksEntryModal = ({ isOpen, onClose, student }) => {
               </button>
               <button type="submit" className="btn btn-primary" disabled={loading}>
                 {loading ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-                Submit Marks
+                {isEdit ? 'Save Changes' : 'Submit Marks'}
               </button>
             </div>
           </form>
