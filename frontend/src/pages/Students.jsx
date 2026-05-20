@@ -1,18 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { Search, UserPlus, MoreVertical, Filter, Loader2, Edit, Trash2, Upload } from 'lucide-react';
+import { Search, UserPlus, MoreVertical, Filter, Loader2, Edit, Trash2, Upload, ClipboardList, Eye } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
 import { studentApi, classApi, staffApi } from '../utils/api';
 import StudentModal from '../components/StudentModal';
 import BulkUploadModal from '../components/BulkUploadModal';
+import MarksEntryModal from '../components/MarksEntryModal';
 import { useAuth } from '../context/AuthContext';
 
 const Students = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+  const [isMarksModalOpen, setIsMarksModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [actionMenuId, setActionMenuId] = useState(null);
   
@@ -32,6 +37,7 @@ const Students = () => {
 
   const isAdmin = user?.role?.toLowerCase() === 'admin' || user?.role?.toLowerCase() === 'super admin';
   const isTeacher = user?.role?.toLowerCase() === 'teacher';
+  const canEditDelete = isAdmin || isTeacher;
 
   // Load class configurations and filters on user mount
   useEffect(() => {
@@ -136,7 +142,7 @@ const Students = () => {
   };
 
   const handleSaveStudent = async (formData) => {
-    if (!isAdmin) return;
+    if (!canEditDelete) return;
     try {
       if (selectedStudent) {
         await studentApi.update(selectedStudent._id, formData);
@@ -151,7 +157,7 @@ const Students = () => {
   };
 
   const handleBulkUpload = async (studentsData) => {
-    if (!isAdmin) return;
+    if (!canEditDelete) return;
     try {
       await studentApi.bulkRegister(studentsData);
       await fetchStudents(1); // Refresh list
@@ -162,13 +168,42 @@ const Students = () => {
   };
 
   const handleDeleteStudent = async (id) => {
-    if (!isAdmin) return;
-    if (window.confirm('Are you sure you want to delete this student?')) {
+    if (!canEditDelete) return;
+    
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#6366f1',
+      cancelButtonColor: '#ef4444',
+      confirmButtonText: 'Yes, delete it!',
+      background: '#ffffff',
+      customClass: {
+        popup: 'swal2-premium-popup'
+      }
+    });
+
+    if (result.isConfirmed) {
       try {
         await studentApi.delete(id);
         await fetchStudents(currentPage);
+        
+        Swal.fire({
+          title: 'Deleted!',
+          text: 'Student record has been successfully deleted.',
+          icon: 'success',
+          confirmButtonColor: '#6366f1',
+          timer: 1500
+        });
       } catch (err) {
         console.error('Error deleting student:', err);
+        Swal.fire({
+          title: 'Error!',
+          text: 'Failed to delete the student. Please try again.',
+          icon: 'error',
+          confirmButtonColor: '#6366f1'
+        });
       }
     }
   };
@@ -185,13 +220,13 @@ const Students = () => {
   };
 
   const openAddModal = () => {
-    if (!isAdmin) return;
+    if (!canEditDelete) return;
     setSelectedStudent(null);
     setIsModalOpen(true);
   };
 
   const openEditModal = (student) => {
-    if (!isAdmin) return;
+    if (!canEditDelete) return;
     setSelectedStudent(student);
     setIsModalOpen(true);
     setActionMenuId(null);
@@ -204,7 +239,7 @@ const Students = () => {
           <h1>Students</h1>
           <p>Manage your student lifecycle and records. Total: {totalStudents}</p>
         </div>
-        {isAdmin && (
+        {canEditDelete && (
           <div className="header-actions">
             <button className="btn btn-secondary" onClick={() => setIsBulkModalOpen(true)}>
               <Upload size={18} />
@@ -293,7 +328,7 @@ const Students = () => {
                 <th>Name</th>
                 <th>Class</th>
                 <th>Status</th>
-                {isAdmin && <th>Action</th>}
+                {canEditDelete && <th>Action</th>}
               </tr>
             </thead>
             <tbody>
@@ -308,8 +343,15 @@ const Students = () => {
                         {student.status}
                       </span>
                     </td>
-                    {isAdmin && (
+                    {canEditDelete && (
                       <td className="action-cell">
+                        <button 
+                          className="btn-icon" 
+                          onClick={() => navigate(`/student-profile/${student._id}`)}
+                          title="View Profile"
+                        >
+                          <Eye size={18} color="var(--text-secondary)" />
+                        </button>
                         <button 
                           className="btn-icon" 
                           onClick={() => setActionMenuId(actionMenuId === student._id ? null : student._id)}
@@ -318,6 +360,13 @@ const Students = () => {
                         </button>
                         {actionMenuId === student._id && (
                           <div className="action-menu card">
+                            <button onClick={() => {
+                              setSelectedStudent(student);
+                              setIsMarksModalOpen(true);
+                              setActionMenuId(null);
+                            }}>
+                              <ClipboardList size={16} /> Marks Entry
+                            </button>
                             <button onClick={() => openEditModal(student)}>
                               <Edit size={16} /> Edit
                             </button>
@@ -332,7 +381,7 @@ const Students = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={isAdmin ? 5 : 4} style={{ textAlign: 'center', padding: '2rem' }}>
+                  <td colSpan={canEditDelete ? 5 : 4} style={{ textAlign: 'center', padding: '2rem' }}>
                     No students found.
                   </td>
                 </tr>
@@ -376,6 +425,12 @@ const Students = () => {
         isOpen={isBulkModalOpen}
         onClose={() => setIsBulkModalOpen(false)}
         onUploadComplete={handleBulkUpload}
+      />
+
+      <MarksEntryModal
+        isOpen={isMarksModalOpen}
+        onClose={() => setIsMarksModalOpen(false)}
+        student={selectedStudent}
       />
 
       <style>{`
@@ -475,7 +530,12 @@ const Students = () => {
           to { transform: rotate(360deg); }
         }
 
-        .action-cell { position: relative; }
+        .action-cell { 
+          position: relative; 
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
         .action-menu {
           position: absolute; right: 0; top: 100%; width: 140px; padding: 0.5rem;
           z-index: 10; display: flex; flex-direction: column; gap: 0.25rem;

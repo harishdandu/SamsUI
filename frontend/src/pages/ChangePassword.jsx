@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Lock, Mail, ShieldCheck, Loader2, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { Lock, Mail, ShieldCheck, Loader2, ArrowLeft, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 const ChangePassword = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState(1); // 1: Request OTP, 2: Verify & Change
   const [error, setError] = useState('');
@@ -129,7 +131,7 @@ const ChangePassword = () => {
               </button>
             </div>
           ) : (
-            <form onSubmit={handleChangePassword} className="step-content">
+            <form onSubmit={handleChangePassword} className="step-content" autoComplete="new-password">
               <div className="form-group">
                 <label className="form-label">Enter OTP Code</label>
                 <div className="input-group">
@@ -142,6 +144,7 @@ const ChangePassword = () => {
                     placeholder="6-digit code"
                     maxLength={6}
                     required 
+                    autoComplete="one-time-code"
                   />
                 </div>
               </div>
@@ -151,13 +154,22 @@ const ChangePassword = () => {
                 <div className="input-group">
                   <Lock size={18} />
                   <input 
-                    type="password" 
+                    type={showNewPassword ? "text" : "password"} 
                     className="form-input" 
                     value={newPassword} 
                     onChange={(e) => setNewPassword(e.target.value)} 
                     placeholder="Min 6 characters"
                     required 
+                    autoComplete="new-password"
                   />
+                  <button
+                    type="button"
+                    className="password-toggle-btn"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    tabIndex="-1"
+                  >
+                    {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                 </div>
               </div>
 
@@ -166,13 +178,22 @@ const ChangePassword = () => {
                 <div className="input-group">
                   <Lock size={18} />
                   <input 
-                    type="password" 
+                    type={showConfirmPassword ? "text" : "password"} 
                     className="form-input" 
                     value={confirmPassword} 
                     onChange={(e) => setConfirmPassword(e.target.value)} 
                     placeholder="Repeat password"
                     required 
+                    autoComplete="new-password"
                   />
+                  <button
+                    type="button"
+                    className="password-toggle-btn"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    tabIndex="-1"
+                  >
+                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                 </div>
               </div>
 
@@ -184,14 +205,14 @@ const ChangePassword = () => {
                 >
                   {loading ? <Loader2 size={18} className="animate-spin" /> : 'Update Password'}
                 </button>
-                <button 
+                {/* <button 
                   type="button" 
                   className="btn btn-ghost btn-block" 
                   onClick={() => setStep(1)}
                   disabled={loading}
                 >
                   Resend OTP
-                </button>
+                </button> */}
               </div>
             </form>
           )}
@@ -219,9 +240,26 @@ const ChangePassword = () => {
         .error-alert { background: #fee2e2; color: #991b1b; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem; font-size: 0.875rem; text-align: center; }
         .success-alert { background: #dcfce7; color: #166534; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem; font-size: 0.875rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
 
-        .input-group { position: relative; display: flex; align-items: center; }
-        .input-group svg { position: absolute; left: 1rem; color: var(--text-secondary); }
-        .input-group .form-input { padding-left: 2.75rem; }
+        .input-group { position: relative; display: flex; align-items: center; width: 100%; }
+        .input-group > svg:first-of-type { position: absolute; left: 1rem; color: var(--text-secondary); }
+        .input-group .form-input { padding-left: 2.75rem; padding-right: 2.75rem; flex: 1; min-width: 0; width: 100%; }
+        .password-toggle-btn {
+          position: absolute;
+          right: 1rem;
+          background: none;
+          border: none;
+          padding: 0;
+          margin: 0;
+          cursor: pointer;
+          color: var(--text-secondary);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: var(--transition);
+        }
+        .password-toggle-btn:hover {
+          color: var(--primary);
+        }
         
         .btn-block { width: 100%; justify-content: center; padding: 0.875rem; margin-top: 1rem; }
         .btn-ghost { background: none; border: 1px solid var(--border); color: var(--text-secondary); }

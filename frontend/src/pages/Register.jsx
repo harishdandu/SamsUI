@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, Building, ArrowRight, ShieldCheck, Loader2, AlertCircle, CheckCircle2, Phone } from 'lucide-react';
+import { Mail, Lock, Building, ArrowRight, ShieldCheck, Loader2, AlertCircle, CheckCircle2, Phone, Eye, EyeOff } from 'lucide-react';
 import { schoolApi } from '../utils/api';
 import { toast } from 'react-hot-toast';
 
@@ -15,6 +15,8 @@ const Register = () => {
     confirmPassword: ''
   });
   const [otp, setOtp] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [step, setStep] = useState(1); // 1: Details, 2: OTP
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
@@ -175,13 +177,21 @@ const Register = () => {
                 <div className="input-wrapper">
                   <Lock size={18} />
                   <input 
-                    type="password" 
+                    type={showPassword ? "text" : "password"} 
                     name="password"
                     placeholder="••••••••"
                     value={formData.password}
                     onChange={handleChange}
                     required 
                   />
+                  <button
+                    type="button"
+                    className="password-toggle-btn"
+                    onClick={() => setShowPassword(!showPassword)}
+                    tabIndex="-1"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                 </div>
               </div>
 
@@ -190,13 +200,21 @@ const Register = () => {
                 <div className="input-wrapper">
                   <Lock size={18} />
                   <input 
-                    type="password" 
+                    type={showConfirmPassword ? "text" : "password"} 
                     name="confirmPassword"
                     placeholder="••••••••"
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     required 
                   />
+                  <button
+                    type="button"
+                    className="password-toggle-btn"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    tabIndex="-1"
+                  >
+                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                 </div>
               </div>
 
@@ -258,11 +276,28 @@ const Register = () => {
         
         .form-group { margin-bottom: 1.25rem; }
         .form-label { display: block; font-size: 0.875rem; font-weight: 600; color: #1e293b; margin-bottom: 0.5rem; }
-        .input-wrapper { display: flex; align-items: center; background: #f1f5f9; border: 2px solid transparent; border-radius: 0.75rem; padding: 0 1rem; transition: all 0.2s; }
+        .input-wrapper { display: flex; align-items: center; background: #f1f5f9; border: 2px solid transparent; border-radius: 0.75rem; padding: 0 1rem; transition: all 0.2s; position: relative; }
         .input-wrapper:focus-within { border-color: #4f46e5; background: white; box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); }
         .input-wrapper.disabled { background: #f8fafc; opacity: 0.7; pointer-events: none; }
         .input-wrapper svg { color: #64748b; margin-right: 0.75rem; }
-        .input-wrapper input { border: none; background: transparent; padding: 0.75rem 0; width: 100%; outline: none; color: #1e293b; font-size: 0.9375rem; }
+        .input-wrapper input { border: none; background: transparent; padding: 0.75rem 0; width: 100%; outline: none; color: #1e293b; font-size: 0.9375rem; padding-right: 2.5rem; }
+        .password-toggle-btn {
+          position: absolute;
+          right: 1rem;
+          background: none;
+          border: none;
+          padding: 0;
+          margin: 0;
+          cursor: pointer;
+          color: #64748b;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+        }
+        .password-toggle-btn:hover {
+          color: #4f46e5;
+        }
         
         .auth-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.75rem; background: #4f46e5; color: white; padding: 0.875rem; border: none; border-radius: 0.75rem; font-weight: 700; cursor: pointer; transition: all 0.2s; margin-top: 1rem; }
         .auth-btn:hover { background: #4338ca; transform: translateY(-1px); box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3); }

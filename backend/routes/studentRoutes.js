@@ -5,7 +5,8 @@ import {
   updateStudent, 
   deleteStudent, 
   getStudentsForAttendance,
-  bulkRegister
+  bulkRegister,
+  getStudentById
 } from '../controllers/studentController.js';
 import { protect } from '../middleware/auth.js';
 
@@ -15,6 +16,7 @@ router.use(protect);
 
 router.get('/', getAllStudents);
 router.get('/attendance-list', getStudentsForAttendance);
+router.get('/:id', getStudentById);
 router.post('/', createStudent);
 router.post('/bulk', bulkRegister);
 router.put('/:id', updateStudent);

@@ -23,6 +23,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import SchoolProfilePage from './pages/SchoolProfilePage';
 import LeaveTracker from './pages/LeaveTracker';
 import AdminLeaveTracker from './pages/AdminLeaveTracker';
+import StudentProfile from './pages/StudentProfile';
 
 const ProtectedRoute = ({ children }) => {
   const { token, user, loading } = useAuth();
@@ -57,6 +58,7 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/students" element={<ProtectedRoute><Students /></ProtectedRoute>} />
+          <Route path="/student-profile/:id" element={<ProtectedRoute><StudentProfile /></ProtectedRoute>} />
           <Route path="/staff" element={<ProtectedRoute><Staff /></ProtectedRoute>} />
           <Route path="/staff-payroll" element={<ProtectedRoute><StaffPayroll /></ProtectedRoute>} />
           <Route path="/attendance" element={<ProtectedRoute><Attendance /></ProtectedRoute>} />

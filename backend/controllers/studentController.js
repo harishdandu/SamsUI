@@ -63,7 +63,7 @@ export const getAllStudents = async (req, res) => {
 
     const total = await Student.countDocuments(query);
     const students = await Student.find(query)
-      .sort({ createdAt: -1 })
+      .sort({ rollNumber: 1 })
       .skip(skip)
       .limit(limit);
 
@@ -333,12 +333,34 @@ export const bulkRegister = async (req, res) => {
 
 export const updateStudent = async (req, res) => {
   const { id } = req.params;
-  const student = req.body;
+  const studentData = req.body;
   try {
-    const updatedStudent = await Student.findByIdAndUpdate(id, student, { new: true });
+    const existingStudent = await Student.findById(id);
+    if (!existingStudent) {
+      return res.status(404).json({ message: 'Student not found.' });
+    }
+
+    const isSectionChanged = studentData.section && studentData.section !== existingStudent.section;
+    const isClassChanged = studentData.class && studentData.class !== existingStudent.class;
+
+    if (isSectionChanged || isClassChanged) {
+      const targetClass = studentData.class || existingStudent.class;
+      const targetSection = studentData.section || existingStudent.section;
+
+      const lastStudent = await Student.findOne(
+        { schoolId: existingStudent.schoolId, class: targetClass, section: targetSection },
+        {},
+        { sort: { rollNumber: -1 } }
+      );
+
+      studentData.rollNumber = (lastStudent?.rollNumber || 0) + 1;
+    }
+
+    const updatedStudent = await Student.findByIdAndUpdate(id, studentData, { new: true, runValidators: true });
     res.status(200).json(updatedStudent);
   } catch (error) {
-    res.status(404).json({ message: error.message });
+    console.error('Error updating student:', error);
+    res.status(400).json({ message: error.message });
   }
 };
 
@@ -349,5 +371,18 @@ export const deleteStudent = async (req, res) => {
     res.status(200).json({ message: 'Student deleted successfully.' });
   } catch (error) {
     res.status(404).json({ message: error.message });
+  }
+};
+
+export const getStudentById = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const student = await Student.findOne({ _id: id, schoolId: req.user.schoolId });
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found.' });
+    }
+    res.status(200).json(student);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };

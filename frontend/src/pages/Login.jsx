@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { GraduationCap, Lock, User, Loader2 } from 'lucide-react';
+import { GraduationCap, Lock, User, Loader2, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -64,13 +65,21 @@ const Login = () => {
             <div className="input-group">
               <Lock size={18} />
               <input 
-                type="password" 
+                type={showPassword ? "text" : "password"} 
                 className="form-input" 
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)} 
                 placeholder="••••••••"
                 required 
               />
+              <button
+                type="button"
+                className="password-toggle-btn"
+                onClick={() => setShowPassword(!showPassword)}
+                tabIndex="-1"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
           </div>
           <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
@@ -93,8 +102,25 @@ const Login = () => {
         .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
         .label-row .form-label { margin-bottom: 0; }
         .input-group { position: relative; display: flex; align-items: center; }
-        .input-group svg { position: absolute; left: 1rem; color: var(--text-secondary); }
-        .input-group .form-input { padding-left: 2.75rem; }
+        .input-group > svg:first-of-type { position: absolute; left: 1rem; color: var(--text-secondary); }
+        .input-group .form-input { padding-left: 2.75rem; padding-right: 2.75rem; flex: 1; min-width: 0; width: 100%; }
+        .password-toggle-btn {
+          position: absolute;
+          right: 1rem;
+          background: none;
+          border: none;
+          padding: 0;
+          margin: 0;
+          cursor: pointer;
+          color: var(--text-secondary);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: var(--transition);
+        }
+        .password-toggle-btn:hover {
+          color: var(--primary);
+        }
         .btn-block { width: 100%; justify-content: center; padding: 0.875rem; margin-top: 1rem; }
         .error-alert { background: #fee2e2; color: #991b1b; padding: 0.75rem; border-radius: var(--radius); margin-bottom: 1.5rem; font-size: 0.875rem; }
         .login-footer { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); font-size: 0.75rem; color: var(--text-secondary); }

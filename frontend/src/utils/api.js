@@ -22,6 +22,7 @@ api.interceptors.request.use((config) => {
 
 export const studentApi = {
   getAll: (params) => api.get('/students', { params }),
+  getById: (id) => api.get(`/students/${id}`),
   getForAttendance: (params) => api.get('/students/attendance-list', { params }),
   create: (data) => api.post('/students', data),
   update: (id, data) => api.put(`/students/${id}`, data),
@@ -105,6 +106,11 @@ export const syllabusApi = {
   getByClass: (classId, params) => api.get(`/syllabus/${classId}`, { params }),
   update: (id, data) => api.put(`/syllabus/${id}`, data),
   getMySyllabuses: () => api.get('/syllabus/my-syllabuses'),
+};
+
+export const examMarkApi = {
+  create: (data) => api.post('/exam-marks', data),
+  getAll: (params) => api.get('/exam-marks', { params }),
 };
 
 export default api;
