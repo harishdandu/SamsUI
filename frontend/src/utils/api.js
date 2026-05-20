@@ -113,4 +113,11 @@ export const examMarkApi = {
   getAll: (params) => api.get('/exam-marks', { params }),
 };
 
+export const classTeacherApi = {
+  getAll: (params) => api.get('/class-teachers', { params }),
+  assign: (data) => api.post('/class-teachers', data),
+  unassign: (id) => api.delete(`/class-teachers/${id}`),
+  getEligible: (params) => api.get('/class-teachers/eligible-teachers', { params }),
+};
+
 export default api;

@@ -37,6 +37,7 @@ const Sidebar = () => {
     { name: 'Ledgers', icon: <BookOpen size={20} />, path: '/ledger', roles: ['admin','accountant', 'super admin'] },
     { name: 'Subjects', icon: <Book size={20} />, path: '/subjects', roles: ['super admin', 'admin'] },
     { name: 'Classes', icon: <Layers size={20} />, path: '/classes', roles: ['super admin', 'admin'] },
+    { name: 'Class Teachers', icon: <Users size={20} />, path: '/class-teachers', roles: ['super admin', 'admin', 'teacher', 'hr'] },
     { name: 'Syllabus', icon: <BookOpen size={20} />, path: '/syllabus', roles: ['teacher', 'admin'] },
     { name: 'AI Test Gen', icon: <Sparkles size={20} />, path: '/test-gen', roles: ['teacher'] },
     { name: 'Accounting', icon: <BarChart3 size={20} />, path: '/accounting', roles: ['admin', 'accountant'] },

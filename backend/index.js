@@ -33,6 +33,7 @@ import schoolRoutes from './routes/schoolRoutes.js';
 import classRoutes from './routes/classRoutes.js';
 import syllabusRoutes from './routes/syllabusRoutes.js';
 import examMarkRoutes from './routes/examMarkRoutes.js';
+import classTeacherRoutes from './routes/classTeacherRoutes.js';
 
 app.use('/api/students', studentRoutes);
 app.use('/api/attendance', attendanceRoutes);
@@ -51,6 +52,7 @@ app.use('/api/schools', schoolRoutes);
 app.use('/api/classes', classRoutes);
 app.use('/api/syllabus', syllabusRoutes);
 app.use('/api/exam-marks', examMarkRoutes);
+app.use('/api/class-teachers', classTeacherRoutes);
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.get('*', (req, res) => {

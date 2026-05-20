@@ -11,6 +11,7 @@ import Attendance from './pages/Attendance';
 import Fees from './pages/Fees';
 import Subjects from './pages/Subjects';
 import ClassesPage from './pages/ClassesPage';
+import ClassTeachersPage from './pages/ClassTeachersPage';
 import Syllabus from './pages/Syllabus';
 import TestGenerator from './pages/TestGenerator';
 import Accounting from './pages/Accounting';
@@ -65,6 +66,7 @@ function App() {
           <Route path="/fees" element={<ProtectedRoute><Fees /></ProtectedRoute>} />
           <Route path="/subjects" element={<ProtectedRoute><Subjects /></ProtectedRoute>} />
           <Route path="/classes" element={<ProtectedRoute><ClassesPage /></ProtectedRoute>} />
+          <Route path="/class-teachers" element={<ProtectedRoute><ClassTeachersPage /></ProtectedRoute>} />
           <Route path="/syllabus" element={<ProtectedRoute><Syllabus /></ProtectedRoute>} />
           <Route path="/test-gen" element={<ProtectedRoute><TestGenerator /></ProtectedRoute>} />
           <Route path="/accounting" element={<ProtectedRoute><Accounting /></ProtectedRoute>} />
